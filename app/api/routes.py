@@ -12,7 +12,7 @@ from Helper import Log
 @bp.route('/execution/<executionId>', methods=['PATCH'])
 def setExecutionStatus(executionId: int) -> Dict[str, str]:
     data: Dict = json.loads(request.data.decode('utf8'))
-    Log.D(f'ELCM execution data (Execution: {executionId}): {data}')
+    Log.I(f'ELCM execution data (Execution: {executionId}): {data}')
     execution: Execution = Execution.query.get(int(executionId))
     if execution:
         if 'Status' in data:

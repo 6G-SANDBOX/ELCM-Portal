@@ -13,7 +13,7 @@
 
 {% block styles %}
 {{ super() }}
-<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.gif') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 <script src="{{ url_for('static', filename='js/nanobar.min.js') }}"></script>
 <script>
@@ -37,14 +37,9 @@
             </button>
             {% if current_user.is_anonymous %}
             <a href="{{ url_for('authentication.login') }}"><img
-                    src=" {{ url_for('static', filename='images/6Gpath-transparent.png') }} " alt="6G-Path"
-                    height="50" width="39" style="float: left; padding: 5px"></a>
-            <a class="navbar-brand" href="{{ url_for('authentication.login') }}">6G-Path</a>
-            {% else %}
+                src="{{ url_for('static', filename='images/6Gpath-transparent.png') }}" alt="6G-Path"  style="float: left; padding: 5px; width: 64px; height: auto"></a>            {% else %}
             <a href="{{ url_for('main.index') }}"><img
-                    src="{{ url_for('static', filename='images/6Gpath-transparent.png') }}" alt="6G-Path" height="50"
-                    width="39" style="float: left; padding: 5px"></a>
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">6G-Path</a>
+                src="{{ url_for('static', filename='images/6Gpath-transparent.png') }}" alt="6G-Path"  style="float: left; padding: 5px; width: 64px; height: auto"></a>
             {% endif %}
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -57,7 +52,7 @@
             <ul class="nav navbar-nav">
                 <li><a id="navbar-home" href="{{ url_for('main.index') }}">Home</a></li>
                 <li><a id="navbar-createExperiment" href="{{ url_for('experiment.create') }}">Create Experiment</a></li>
-                <li><a id="navbar-vnf" href="{{ url_for('NsManagement.repository') }}">VNF/NS Management</a></li>
+                <li><a id="navbar-vnf" href="{{ url_for('NsManagement.repository') }}">Info</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="{{ url_for('authentication.logout') }}">{{ current_user.username }} - Logout</a></li>
