@@ -3,9 +3,9 @@ from flask_login import current_user, login_user, logout_user
 from urllib.parse import urlparse
 from app import db
 from app.models import User
-from app.dispatcher_auth import bp
-from app.dispatcher_auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
-from REST import DispatcherApi
+from app.auth import bp
+from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
+from REST import DispatcherApi  #TODO: Cleanup
 from Helper import Config, Log
 
 
@@ -30,20 +30,19 @@ def register():
             return render_template('dispatcher_auth/register.html', title='Register', form=form,
                                    description=Config().Description, ewEnabled=Config().EastWest.Enabled)
 
-        user: User = User(username=form.username.data, email=form.email.data, organization=form.organization.data)
-        user.setPassword(form.password.data)
-
-        message, success = DispatcherApi().Register(user)
-
-        if success:
+        try:
+            user: User = User(username=form.username.data, email=form.email.data, organization=form.organization.data)
+            user.setPassword(form.password.data)
             db.session.add(user)
             db.session.commit()
-            flash(message, 'info')
+            flash(f"User '{user.username}' created", 'info')
             return redirect(url_for('auth.login'))
-        else:
-            flash(message, 'error')
+        except Exception as e:
+            Log.E(f"Exception while creating new user: {e}")
+            Log.D(f"User: {user}")
+            flash(f"Unable to create user", 'error')
 
-    return render_template('dispatcher_auth/register.html', title='Register', form=form,
+    return render_template('auth/register.html', title='Register', form=form,
                            description=Config().Description, ewEnabled=Config().EastWest.Enabled)
 
 
@@ -62,12 +61,6 @@ def login():
             flash('Invalid username or password', 'error')
             return redirect(url_for('auth.login'))
 
-        # Check that the user exist in the dispatcher DB and has been activated
-        maybeError = DispatcherApi().RenewUserToken(user)
-        if maybeError is not None:
-            flash(f"Could not retrieve authentication token: {maybeError}", "error")
-            return redirect(url_for('auth.login'))
-
         login_user(user, remember=form.rememberMe.data)
         Log.I(f'User {user.username} logged in')
         nextPage = request.args.get('next')
@@ -76,7 +69,7 @@ def login():
 
         return redirect(nextPage)
 
-    return render_template('dispatcher_auth/login.html', title='Sign In', form=form,
+    return render_template('auth/login.html', title='Sign In', form=form,
                            description=Config().Description, ewEnabled=Config().EastWest.Enabled)
 
 
