@@ -15,11 +15,6 @@ def ues():
     return jsonify({'UEs': Facility.UEs()})
 
 
-@bp.route('/baseSliceDescriptors', methods=['GET'])
-def baseSliceDescriptors():
-    return jsonify({'SliceDescriptors': Facility.BaseSlices()})
-
-
 @bp.route('/scenarios', methods=['GET'])
 def scenarios():
     return jsonify({'Scenarios': Facility.Scenarios()})

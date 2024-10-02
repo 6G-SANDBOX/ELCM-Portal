@@ -200,7 +200,7 @@ def configureRemote(experimentId: int):
 
     testCases = remoteApi.GetTestCases()
     ues = remoteApi.GetUEs()
-    baseSlices = remoteApi.GetBaseSlices()
+    baseSlices = []  # TODO: Cleanup
     scenarios = ["[None]", *remoteApi.GetScenarios()]
     networkServices = remoteApi.GetNetworkServices()
 

@@ -24,8 +24,7 @@ class Facility:
             testcases = elcm.GetTestCases()
             Log.I('  Retrieving Scenarios...')
             scenarios = elcm.GetScenarios()
-            Log.I('  Retrieving Base Slice Descriptors (Slice Manager)...')
-            baseSlices = elcm.GetBaseSlices()
+            baseSlices = []  # TODO: Cleanup
 
             standard = []
             custom = []

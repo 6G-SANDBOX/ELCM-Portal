@@ -19,9 +19,6 @@ class RemoteApi(RestClient):
     def GetUEs(self) -> List[str]:
         return self.getData(f'{self.api_url}/ues', "UEs")
 
-    def GetBaseSlices(self) -> List[str]:
-        return self.getData(f'{self.api_url}/baseSliceDescriptors', 'SliceDescriptors')
-
     def GetScenarios(self) -> List[str]:
         return self.getData(f'{self.api_url}/scenarios', 'Scenarios')
 
