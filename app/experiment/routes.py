@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 from REST import ElcmApi, DispatcherApi, AnalyticsApi
 from app import db
 from app.experiment import bp
-from app.models import Experiment, Execution, Action, NetworkService
+from app.models import Experiment, Execution, Action
 from app.experiment.forms import ExperimentForm, RunExperimentForm, DistributedStep1Form, DistributedStep2Form
 from app.execution.routes import getLastExecution
 from Helper import Config, Log, Facility
@@ -34,12 +34,6 @@ def _addNetworkServices(form, experiment):
 @login_required
 def create():
     experimentTypes = ['Standard', 'Custom', 'MONROE']
-
-    nss: List[Tuple[str, int]] = []
-
-    # Get User's available NSs
-    for ns in current_user.UsableNetworkServices:
-         nss.append((ns.name, ns.id))
 
     form = ExperimentForm()
     if form.validate_on_submit():

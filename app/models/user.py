@@ -6,7 +6,6 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login
 from .experiment import Experiment
-from .network_services import NetworkService
 
 
 class User(UserMixin, db.Model):
@@ -19,7 +18,6 @@ class User(UserMixin, db.Model):
     tokenTimestamp = db.Column(db.DATETIME)
     experimentsRelation = db.relationship('Experiment', backref='author', lazy='dynamic')
     actionsRelation = db.relationship('Action', backref='author', lazy='dynamic')
-    networkServiceRelation = db.relationship('NetworkService', backref='author', lazy='dynamic')
 
     def __repr__(self):
         return f'<Id: {self.id}, Username: {self.username}, Email: {self.email}, Organization: {self.organization}'
@@ -46,16 +44,6 @@ class User(UserMixin, db.Model):
     @property
     def Actions(self) -> List:
         return Action.query.filter_by(user_id=self.id).order_by(Action.id.desc()).limit(10)
-
-    @property
-    def NetworkServices(self) -> List:
-        return NetworkService.query.filter_by(user_id=self.id).order_by(NetworkService.name.asc())
-
-    @property
-    def UsableNetworkServices(self) -> Set:
-        own = [service for service in self.NetworkServices if service.Ready]
-        public = [service for service in NetworkService.PublicServices() if service.Ready]
-        return {*own, *public}
 
     @staticmethod
     def verifyResetPasswordToken(token):

@@ -5,12 +5,6 @@ from .execution import Execution
 from Helper import Config
 
 
-experiment_ns = db.Table('experiments_ns',
-                         db.Column('experiment_id', db.Integer, db.ForeignKey('experiment.id')),
-                         db.Column('ns_id', db.Integer, db.ForeignKey('network_service.id'))
-                         )
-
-
 class Experiment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64))
@@ -26,7 +20,6 @@ class Experiment(db.Model):
     application = db.Column(db.String(64))
     parameters = db.Column(JSONEncodedDict)
     executions = db.relationship('Execution', backref='experiment', lazy='dynamic')
-    networkServicesRelation = db.relationship('NetworkService', secondary=experiment_ns)
     remotePlatform = db.Column(db.String(128))
     remoteDescriptor_id = db.Column(db.Integer, db.ForeignKey('experiment.id'))
     remoteDescriptor = db.relationship('Experiment', remote_side=[id], backref='parentDescriptor')
