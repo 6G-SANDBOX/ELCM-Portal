@@ -125,8 +125,7 @@ def create():
                            customTestCases=customTestCases, parameterInfo=parameterInfo,
                            parameterNamesPerTestCase=parameterNamesPerTestCase,
                            testCaseNamesPerParameter=testCaseNamesPerParameter,
-                           sliceList=baseSlices, scenarioList=scenarios, nss=nss, experimentTypes=experimentTypes,
-                           ewEnabled=Config().EastWest.Enabled)
+                           experimentTypes=experimentTypes, ewEnabled=Config().EastWest.Enabled)
 
 
 @bp.route('/create_dist', methods=['GET', 'POST'])

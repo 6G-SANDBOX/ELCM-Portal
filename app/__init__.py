@@ -44,9 +44,6 @@ def create_app(config_class=Config):
     from app.api import bp as api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
 
-    from app.network_services import bp as ns_bp
-    app.register_blueprint(ns_bp, url_prefix='/services')
-
     from app.experiment import bp as experiment_bp
     app.register_blueprint(experiment_bp, url_prefix='/experiment')
 

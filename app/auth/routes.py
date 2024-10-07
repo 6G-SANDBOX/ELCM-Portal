@@ -1,3 +1,5 @@
+from typing import Optional
+
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user
 from urllib.parse import urlparse
@@ -27,11 +29,12 @@ def register():
                 return False
 
         if _exist():
-            return render_template('dispatcher_auth/register.html', title='Register', form=form,
+            return render_template('auth/register.html', title='Register', form=form,
                                    description=Config().Description, ewEnabled=Config().EastWest.Enabled)
 
+        user: Optional[User] = None
         try:
-            user: User = User(username=form.username.data, email=form.email.data, organization=form.organization.data)
+            user = User(username=form.username.data, email=form.email.data, organization=form.organization.data)
             user.setPassword(form.password.data)
             db.session.add(user)
             db.session.commit()
