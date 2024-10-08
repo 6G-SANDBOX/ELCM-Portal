@@ -49,49 +49,11 @@ function checkInput() {
       }
     }
 
-    if (document.getElementById("enableSlicing").checked) {
-      if (isWhitespace(document.getElementById("sliceCheckboxedList").value)){
-        errors = true;
-        message += " - 'Slice' value must be set when 'Network Slicing' is enabled\n";
-      }
-      if (isWhitespace(document.getElementById("scenarioCheckboxedList").value)){
-        errors = true;
-        message += " - 'Scenario' value must be set when 'Network Slicing' is enabled\n";
-      }
-    }
-
     if (errors) { alert(message); }
     return !errors;
   } catch(err) {
     console.log(err)
     return false;
-  }
-}
-
-function changeNsRows(nss, nsIds) {
-  curVal = $.trim($("#nsCount").val()).match(/^\d*$/);
-  curFloors = $('.ns').length;
-  if (curVal > curFloors) {
-    addNs(curFloors, curVal, nss, nsIds);
-  } else if (curVal < curFloors) {
-    removeNs(curVal);
-  }
-}
-
-function addNs(actual, target, nss, nsIds) {
-  for (i = actual + 1; i <= target; i++) {
-    newItemHTML = '<tr><td class="table-cell-divisor-right text-center">' + i + '</td><td class="table-cell-divisor-right"><select class="ns InputBox form-control" name="NS' + i + '">'
-    for (j = 0; j < nss.length; j++) {
-      newItemHTML = newItemHTML + '<option value="' + nsIds[j] + '">' + nss[j] + '</option>';
-    }
-    newItemHTML = newItemHTML + '</select></td></tr>';
-    $("table#ns tr").last().after(newItemHTML);
-  }
-}
-
-function removeNs(target) {
-  if (target >= 0) {
-    $('.ns').slice(target).parent().parent().remove();
   }
 }
 
@@ -103,16 +65,6 @@ function disableCheckboxedList(checkboxId, listId) {
     list.removeAttribute("disabled");
   } else {
     list.setAttribute("disabled", true);
-  }
-}
-
-function changeSliceSettingsDiv(checkbox) {
-  let settings = document.getElementById("sliceSettingsDiv");
-
-  if (checkbox.checked){
-    settings.classList.remove("disabled");
-  } else {
-    settings.classList.add("disabled");
   }
 }
 
