@@ -13,17 +13,6 @@
     <script src="{{url_for('static', filename='js/createExperiment.js')}}"></script>
     <script src="{{url_for('static', filename='js/browseFiles.js')}}"></script>
     <script>setTab('navbar-createDistExperiment')</script>
-    <script>
-        // Build the list of NSs before binding the function to the counter
-        $("#nsCount").bind('change', function() {
-            nss = []; nsIds = [];
-            {% for ns in nss %}
-              nss.push("{{ ns[0] }}");
-              nsIds.push("{{ ns[1] }}");
-            {% endfor %}
-            changeNsRows(nss, nsIds);
-          });
-    </script>
 {% endblock %}
 
 {% block app_content %}
@@ -51,8 +40,6 @@
             {{ base.testCasesField('RemoteSide', testCases) }}
             {{ base.uesField('RemoteSide', ues) }}
         </div>
-
-        {{ base.sliceSettings(baseSlices, scenarios, nss, canCreateNss=False) }}
 
         <div class="col-sm-12">
             <button type="submit" id="checkBtn" name="submit" class="btn btn-darkBlue">Add Experiment</button>

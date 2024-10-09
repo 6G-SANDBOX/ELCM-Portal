@@ -132,9 +132,7 @@ def createDist():
             flash(f'Exception creating distributed experiment (local): {e}', 'error')
 
     remotes = eastWest.RemoteNames
-    nss: List[Tuple[str, int]] = []
-    for ns in current_user.UsableNetworkServices:
-         nss.append((ns.name, ns.id))
+    nss: List[Tuple[str, int]] = []  # TODO: Cleanup
 
     return render_template('experiment/create_dist.html', title='New Distributed Experiment', form=form, nss=nss,
                            sliceList=Facility.BaseSlices(), scenarioList=["[None]", *Facility.Scenarios()],
@@ -200,7 +198,7 @@ def configureRemote(experimentId: int):
 
     return render_template('experiment/configure_dist.html', title='New Distributed Experiment',
                            form=form, localExperiment=localExperiment,
-                           testCases=testCases, ues=ues, baseSlices=baseSlices, scenarios=scenarios, nss=nss)  # TODO: Cleanup
+                           testCases=testCases, ues=ues)
 
 
 @bp.route('/<experimentId>/reload', methods=['GET', 'POST'])

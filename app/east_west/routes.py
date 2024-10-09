@@ -1,7 +1,6 @@
 from app.east_west import bp
 from flask import jsonify
 from Helper import Facility
-from app.models import NetworkService
 from REST import ElcmApi
 
 
@@ -23,7 +22,7 @@ def scenarios():
 @bp.route('/networkServices', methods=['GET'])
 def networkServices():
     return jsonify({
-        'NetworkServices': [(ns.name, ns.nsd_id, ns.vim_location) for ns in NetworkService.PublicServices() if ns.Ready]
+        'NetworkServices': []  # TODO: Cleanup
     })
 
 
