@@ -7,7 +7,6 @@ from app import db
 from app.models import User
 from app.auth import bp
 from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
-from REST import DispatcherApi  #TODO: Cleanup
 from Helper import Config, Log
 
 

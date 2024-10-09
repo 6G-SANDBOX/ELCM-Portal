@@ -5,7 +5,7 @@ from app import db
 from app.execution import bp
 from app.models import Experiment, Execution
 from Helper import Config, LogInfo, Log
-from REST import DispatcherApi, ElcmApi, AnalyticsApi
+from REST import ElcmApi, AnalyticsApi
 
 
 @bp.route('/<int:executionId>', methods=['GET'])
@@ -26,7 +26,7 @@ def execution(executionId: int):
             try:
                 # Get Execution logs information
                 config = Config()
-                localResponse: Dict = DispatcherApi().GetExecutionLogs(executionId, current_user)
+                localResponse: Dict = ElcmApi().GetLogs(executionId)
                 Log.D(f'Access execution logs response {localResponse}')
                 status = localResponse["Status"]
                 if status == 'Success':

@@ -3,7 +3,7 @@ from typing import Dict, List, Tuple, Set
 from flask import render_template, flash, redirect, url_for, request, jsonify, abort
 from flask.json import loads as jsonParse
 from flask_login import current_user, login_required
-from REST import ElcmApi, DispatcherApi, AnalyticsApi
+from REST import ElcmApi, AnalyticsApi
 from app import db
 from app.experiment import bp
 from app.models import Experiment, Execution, Action
@@ -222,7 +222,7 @@ def experiment(experimentId: int):
             # Get Experiment's executions
             executions: List[Experiment] = exp.experimentExecutions()
             if len(executions) == 0:
-                flash(f'The experiment {exp.name} doesn\'t have any executions yet', 'info')
+                flash(f"The experiment '{exp.name}' doesn't have any executions yet", 'info')
                 return redirect(url_for('main.index'))
             else:
                 analyticsApi = AnalyticsApi()
@@ -244,28 +244,24 @@ def experiment(experimentId: int):
 def runExperiment() -> bool:
     """Returns true if no issue has been detected"""
     try:
-        jsonResponse: Dict = DispatcherApi().RunCampaign(request.form['id'], current_user)
-        success = jsonResponse["Success"]
-        message = jsonResponse["Message"]
+        jsonResponse: Dict = ElcmApi().Run(int(request.form['id']))
         executionId = jsonResponse["ExecutionId"]
-        if not success:
-            raise Exception(message)
-        else:
-            Log.I(f'Ran experiment {request.form["id"]}')
-            Log.D(f'Ran experiment response {jsonResponse}')
-            flash(f'Experiment started with Execution Id: {executionId}', 'info')
-            execution: Execution = Execution(id=executionId, experiment_id=request.form['id'], status='Init')
-            db.session.add(execution)
-            db.session.commit()
 
-            Log.I(f'Added execution {jsonResponse["ExecutionId"]}')
-            exp: Experiment = Experiment.query.get(execution.experiment_id)
-            action = Action(timestamp=datetime.now(timezone.utc), author=current_user,
-                            message=f'<a href="/execution/{execution.id}">Ran experiment: {exp.name}</a>')
-            db.session.add(action)
-            db.session.commit()
-            Log.I(f'Added action - Ran experiment')
-            return True
+        Log.I(f'Ran experiment {request.form["id"]}')
+        Log.D(f'Ran experiment response {jsonResponse}')
+        flash(f'Experiment started with Execution Id: {executionId}', 'info')
+        execution: Execution = Execution(id=executionId, experiment_id=request.form['id'], status='Init')
+        db.session.add(execution)
+        db.session.commit()
+
+        Log.I(f'Added execution {jsonResponse["ExecutionId"]}')
+        exp: Experiment = Experiment.query.get(execution.experiment_id)
+        action = Action(timestamp=datetime.now(timezone.utc), author=current_user,
+                        message=f'<a href="/execution/{execution.id}">Ran experiment: {exp.name}</a>')
+        db.session.add(action)
+        db.session.commit()
+        Log.I(f'Added action - Ran experiment')
+        return True
 
     except Exception as e:
         Log.E(f'Error running experiment: {e}')
