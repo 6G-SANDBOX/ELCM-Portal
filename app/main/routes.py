@@ -9,7 +9,7 @@ from Helper import Config
 
 
 @bp.route('/', methods=['GET', 'POST'])
-@bp.route('/index/reload', methods=['GET', 'POST'])
+@bp.route('/index/reload', methods=['GET', 'POST'])  # TODO: Use URL params or other solution
 @bp.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
@@ -20,7 +20,7 @@ def index():
     formRun = RunExperimentForm()
     if formRun.validate_on_submit():
         success = runExperiment()
-        return redirect(f"{request.url}/reload") if success else redirect(request.url)
+        return redirect(f"{request.host_url}index/reload") if success else redirect(request.url)
 
     return render_template('index.html', formRun=formRun, experiments=experiments, notices=notices,
                            actions=actions, ewEnabled=Config().EastWest.Enabled)
