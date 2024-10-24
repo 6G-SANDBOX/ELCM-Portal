@@ -35,7 +35,7 @@ class Experiment(db.Model):
 
     def _remoteInfo(self):
         if self.type == 'RemoteSide':
-            return {'Remote': Config().Platform}
+            return {'Remote': Config().Branding.Platform}
         else:
             return {
                 'Remote': self.remotePlatform,

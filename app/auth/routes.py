@@ -29,7 +29,7 @@ def register():
 
         if _exist():
             return render_template('auth/register.html', title='Register', form=form,
-                                   description=Config().Description, ewEnabled=Config().EastWest.Enabled)
+                                   description=Config().Branding.Description, ewEnabled=Config().EastWest.Enabled)
 
         user: Optional[User] = None
         try:
@@ -45,7 +45,7 @@ def register():
             flash(f"Unable to create user", 'error')
 
     return render_template('auth/register.html', title='Register', form=form,
-                           description=Config().Description, ewEnabled=Config().EastWest.Enabled)
+                           description=Config().Branding.Description, ewEnabled=Config().EastWest.Enabled)
 
 
 @bp.route('/login', methods=['GET', 'POST'])
