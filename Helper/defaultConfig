@@ -2,17 +2,10 @@ Logging:
   Folder: 'Logs'
   AppLevel: INFO
   LogLevel: DEBUG
-Dispatcher:
-  Host: '127.0.0.1'
-  Port: 8082
-  TokenExpiry: 240
 ELCM:
   Host: '127.0.0.1'
   Port: 5001
 Grafana URL: None
-Platform: 5GenesisPlatform
-PlatformDescriptionPage: platform.html
-Description: 5th Generation End-to-end Network, Experimentation, System Integration, and Showcasing
 EastWest:
   Enabled: False
   Remotes: {}  # One key for each remote Portal, each key containing 'Host' and 'Port' values
@@ -20,3 +13,9 @@ Analytics:
   Enabled: False
   URL: <Internet address>/dash # External URL of the Analytics Dashboard
   Secret: # Secret key shared with the Analytics Dashboard, used in order to create secure URLs
+Branding:
+  Platform: 'Untitled'
+  Description: 'Untitled ELCM Portal'
+  DescriptionPage: 'platform.html'
+  FavIcon: 'favicon.ico'
+  Logo: 'logo.jpg'

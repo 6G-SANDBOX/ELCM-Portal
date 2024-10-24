@@ -28,5 +28,8 @@ def index():
 
 @bp.route('/info')
 def info():
-    return render_template('info.html', title="Testbed Info", html=Config().PlatformDescriptionHtml,
+    with open(Config().Branding.DescriptionPage, 'r', encoding='utf8') as page:
+        html = ''.join(page.readlines())
+
+    return render_template('info.html', title="Testbed Info", html=html,
                            ewEnabled=Config().EastWest.Enabled)

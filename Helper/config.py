@@ -31,12 +31,6 @@ class possiblyEnabled:
         return self.data.get("Enabled", False)
 
 
-class Dispatcher(hostPort):
-    def __init__(self, data: Dict):
-        super().__init__(data, 'Dispatcher')
-        self.TokenExpiry = data['Dispatcher'].get('TokenExpiry', 240)
-
-
 class ELCM(hostPort):
     def __init__(self, data: Dict):
         super().__init__(data, 'ELCM')
@@ -65,6 +59,29 @@ class Logging:
     @property
     def LogLevel(self):
         return self.toLogLevel(self.data['LogLevel'])
+
+
+class Branding:
+    def __init__(self, data: Dict):
+        self.data = data['Branding']
+
+    @property
+    def Platform(self):
+        return self.data.get('Platform', 'Untitled')
+
+    @property
+    def Description(self):
+        return self.data.get('Description', 'Untitled ELCM Portal')
+
+    @property
+    def DescriptionPage(self):
+        return self.data.get('DescriptionPage', 'platform.html')
+
+    def FavIcon(self):
+        return self.data.get('FavIcon', 'favicon.ico')
+
+    def Logo(self):
+        return self.data.get('Logo', 'logo.jpg')
 
 
 class EastWest(possiblyEnabled):
@@ -143,28 +160,16 @@ class Config:
             return notices['Notices']
 
     @property
-    def Dispatcher(self) -> Dispatcher:
-        return Dispatcher(self.data)
-
-    @property
-    def ELCM(self) -> Dispatcher:
+    def ELCM(self) -> ELCM:
         return ELCM(self.data)
 
     @property
-    def Platform(self):
-        return self.data['Platform']
-
-    @property
-    def Description(self):
-        return self.data['Description']
+    def Branding(self) -> Branding:
+        return Branding(self.data)
 
     @property
     def GrafanaUrl(self):
         return self.data['Grafana URL']
-
-    @property
-    def PlatformDescriptionHtml(self):
-        return self.data.get("PlatformDescriptionHtml", self.Description)
 
     @property
     def Logging(self) -> Logging:

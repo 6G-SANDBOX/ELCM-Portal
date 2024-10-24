@@ -72,7 +72,7 @@ def login():
         return redirect(nextPage)
 
     return render_template('auth/login.html', title='Sign In', form=form,
-                           description=Config().Description, ewEnabled=Config().EastWest.Enabled)
+                           description=Config().Branding.Description, ewEnabled=Config().EastWest.Enabled)
 
 
 @bp.route('/logout')
