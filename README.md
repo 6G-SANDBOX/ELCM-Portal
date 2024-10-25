@@ -1,10 +1,9 @@
-# 5Genesis Portal
+# ELCM Portal
 
 ## Requirements
 
- - [Python 3.7.x](https://www.python.org) (see requirements.txt for a detailed view of required packages)
- - [ELCM](https://github.com/5genesis/ELCM) Version 2.4.0 (22/12/2020) or later
- - [Dispatcher](https://github.com/5genesis/Dispatcher) Commit 2c05c28e812fb712f73b51ab78c1d190c0f50d0e (04/01/2021) or later
+ - [Python 3.10.x](https://www.python.org) (see requirements.txt for a detailed view of required packages)
+ - [ELCM](https://gitlab.com/morse-uma/elcm) Version 2.7.0 or later
 
 ### Optional integrations:
 
@@ -15,12 +14,12 @@
 
 ### Pre-requisites
 
-The Portal requires connectivity with running instances of the Dispatcher (user authentication and NS onboarding)
-and ELCM (platform registry and experiment execution).
+The Portal requires connectivity with a running instances of the ELCM (for access to the platform registry and
+experiment execution).
 
 > Additional dependencies may be needed depending on your environment. For example, older Windows version may require
 certain Visual C++ redistributables to be installed, and the following packages are known to be required on many Ubuntu
-distributions: `gcc python3.7 python3.7-venv python3.7-dev`. Fixes for specific issues are usually easy to find on 
+distributions: `gcc python3.10 python3.10-venv python3.10-dev`. Fixes for specific issues are usually easy to find on 
 Internet.
 
 ### Installation procedure
@@ -31,12 +30,13 @@ on the deployment environment some actions may fail or require additional tweaki
 be used as a guide for manual installation, and a description of the actions performed by the scripts is included below
 for use as reference.
 
-1. Ensure that Python 3.7.x is installed. For environments with multiple Python versions note the correct alias.
+1. Ensure that Python 3.10.x or later is installed. For environments with multiple Python versions note the correct
+alias.
    > For example, older Ubuntu distributions refer to Python 2.x by default when invoking `python`, and reference 
-   > Python 3.7 as `python3` or `python3.7`. Use the `--version` parameter to check the version number.
+   > Python 3.10 as `python3` or `python3.10`. Use the `--version` parameter to check the version number.
 2. Clone the repository to a known folder
 3. Run `install.sh <python_alias>` or `install.ps1 <python_alias>` (depending on your OS). The script will:
-  - Display the Python version in use (ensure that this is 3.7.x)
+  - Display the Python version in use (ensure that this is 3.10.x or later)
   - Create a [Python virtual environment](https://virtualenv.pypa.io/en/stable/) for exclusive use of the Portal.
   - Install the required Python packages (using [pip](https://pypi.org/project/pip/))
   > Most issues occur during this step, since it is highly dependent on the environment. In case of error, note the 
@@ -47,7 +47,7 @@ for use as reference.
 4. Run `start.sh` or `start.ps1` (depending on your OS). This will create an empty configuration file (`config.yml`).
    If necessary, press ctrl+c (or your OS equivalent) in order to close the server.
 5. Ensure that the `config.yml` is available in the Portal folder and customize its contents. The Portal needs
-   information about how to connect with the Dispatcher and ELCM components (more information about all the possible 
+   information about how to connect with the ELCM components (more information about all the possible
    configuration values can be found below).
 6. Customize the `.flaskenv` file. Replace the `__REPLACEWITHSECRETKEY__` label with a random string (for more info 
    see [this answer](https://stackoverflow.com/a/22463969).)
@@ -60,7 +60,8 @@ the terminal where the server is running.
 
 ### Minimal integration tests
 
-In order to test that the connections with the Dispatcher and ELCM are working properly, perform the following actions:
+In order to test that the internal database and connection with the ELCM are working properly, perform the following
+actions:
 
 1. Check the log messages (in the log file or console output) that appear when starting the Portal. The Portal tries to
    retrieve the facility configuration from the ELCM when starting, and displays the number of registered test cases,
@@ -70,10 +71,7 @@ In order to test that the connections with the Dispatcher and ELCM are working p
    > the levels are set to `DEBUG` or `INFO`
 2. Open the Portal using a web browser. 
 3. Register a new user (top right, `Register` tab). If no errors are reported after pressing the `Register` button at 
-   the bottom then the connection with the Dispatcher is working properly.
-   > Note that newly registered users are not "active", and cannot log in to the Portal until their registration has 
-   > been validated by the platform administrator(s). For information about the user activation procedure refer to the 
-   > Dispatcher (Authenticator) documentation.
+   the bottom then the Portal database has been initialized correctly.
 
 ## Configuration
 
@@ -84,21 +82,10 @@ The Portal instance can be configured by editing the `config.yml` file.
     - AppLevel: Minimum message level to display in the terminal output (one of `CRITICAL`, `ERROR`, `WARNING`,
       `INFO`, `DEBUG`). Defaults to `INFO`.
     - LogLevel: Minimum message level to write in the log files. Defaults to `DEBUG`.
-- Dispatcher:
-    - Host: Location of the machine where the Dispatcher is running (localhost by default).
-    - Port: Port where the Dispatcher is listening for connections (5001 by default).
-    - TokenExpiry: Time (in seconds) to consider that an authentication token has expired, should be slightly shorter
-    (30/60 seconds) than the real expiration time configured on the Dispatcher.
 - ELCM:
     - Host: Location of the machine where the ELCM is running (localhost by default).
     - Port: Port where the ELCM is listening for connections (5001 by default).
 - Grafana URL: Base URL of Grafana Dashboard to display Execution results.
-- Platform: Platform name. Will be displayed in the Portal and will identify the platform during distributed
-  experiments.
-- Description: Short textual description of the platform. Will be displayed in the Portal.
-- PlatformDescriptionPage: HTML file that contains a more detailed description of the platform. The HTML written in
-  this file will be inserted in the 'Info' page of the Portal. Defaults to `platform.html`. This file is included in
-  this repository, and can be customized or used as reference.
 - EastWest: Configuration for distributed experiments.
     - Enabled: Boolean value indicating if the East/West interfaces are available. Defaults to `False`.
     - Remotes: Dictionary containing the connection configuration for each remote platform's Portal, with each key
@@ -108,6 +95,19 @@ The Portal instance can be configured by editing the `config.yml` file.
     - Enabled: Boolean value indicating if the Analytics Dashboard is available. Defaults to `False`.
     - URL: External URL of the Analytics Dashboard
     - Secret: Secret key shared with the Analytics Dashboard, used in order to create secure URLs
+- Branding:
+  - Platform: Platform name. Will be displayed in the Portal and will identify the platform during distributed
+  experiments. Defaults to 'Untitled'
+  - Description: Short textual description of the platform. Defaults to 'Untitled ELCM Portal'
+  - DescriptionPage: HTML file that contains a more detailed description of the platform. The HTML written in
+  this file will be inserted in the 'Info' page of the Portal. Defaults to `platform.html`. This file is included in
+  this repository, and can be customized or used as reference.
+  - FavIcon: Small icon that is shown on browser tabs or when added to bookmarks. Must be stored in the
+  `static/branding/` folder. Defaults to 'header.png'
+  - Header: Small logo displayed on all page's header.  Must be stored in the`static/branding/` folder and will be
+  resized to 48x48 pixels. Defaults to 'header.png'
+  - Logo: Bigger logo displayed on the login and registration pages.  Must be stored in the`static/branding/` folder and
+  will be resized to 300x300 pixels. Defaults to 'logo.png'
 
 #### Portal notices
 
@@ -124,7 +124,7 @@ The list may include as many notices as necessary.
 ## Authors
 
 * **Gonzalo Chica Morales**
-* **[Bruno Garcia Garcia](https://github.com/NaniteBased)**
+* **[Bruno Garcia Garcia](https://gitlab.com/nanitebased)**
 
 ## License
 
