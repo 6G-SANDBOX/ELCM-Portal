@@ -24,7 +24,7 @@ def index():
         return redirect(f"{request.host_url}index/reload") if success else redirect(request.url)
 
     return render_template('index.html', formRun=formRun, experiments=experiments, notices=notices,
-                           platformName=branding.Platform, header=branding.Header,
+                           platformName=branding.Platform, header=branding.Header, favicon=branding.FavIcon,
                            actions=actions, ewEnabled=Config().EastWest.Enabled)
 
 
@@ -33,6 +33,6 @@ def info():
     with open(branding.DescriptionPage, 'r', encoding='utf8') as page:
         html = ''.join(page.readlines())
 
-    return render_template('info.html', title="Testbed Info",
+    return render_template('info.html', title="Testbed Info", favicon=branding.FavIcon,
                            platformName=branding.Platform, header=branding.Header, html=html,
                            ewEnabled=Config().EastWest.Enabled)

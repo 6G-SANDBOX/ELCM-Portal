@@ -17,5 +17,6 @@ Branding:
   Platform: 'Untitled'
   Description: 'Untitled ELCM Portal'
   DescriptionPage: 'platform.html'
-  FavIcon: 'favicon.ico'
-  Logo: 'logo.jpg'
+  FavIcon: 'logo.png'
+  Header: 'header.png'
+  Logo: 'logo.png'

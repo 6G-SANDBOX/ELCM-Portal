@@ -19,7 +19,8 @@
     </div>
     <div class="col-sm-6" style="text-align: center; padding-top: 20px">
         <div style="margin:0 auto;">
-            <img src="../static/images/5genesisTransparent.png" alt="5Genesis">
+            <img src="{{ url_for('static', filename='branding/' + logo) }}" alt="{{ platformName }}"
+                 style="width: 300px; height: 300px;">
             <br>
             <h2>{{ description }}</h2>
         </div>

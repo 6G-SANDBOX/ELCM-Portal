@@ -51,7 +51,7 @@ def execution(executionId: int):
                             flash('Could not retrieve remote execution logs', 'warning')
 
                     return render_template('execution/execution.html', title=f'Execution {execution.id}',
-                                           platformName=branding.Platform, header=branding.Header,
+                                           platformName=branding.Platform, header=branding.Header, favicon=branding.FavIcon,
                                            execution=execution, localLogs=localLogs, remoteLogs=remoteLogs,
                                            experiment=experiment, grafanaUrl=config.GrafanaUrl,
                                            executionId=getLastExecution() + 1,

@@ -79,15 +79,15 @@ class Branding:
 
     @property
     def FavIcon(self):
-        return self.data.get('FavIcon', 'favicon.ico')
+        return self.data.get('FavIcon', 'logo.png')
 
     @property
     def Header(self):
-        return self.data.get('Header', 'header.jpg')
+        return self.data.get('Header', 'header.png')
 
     @property
     def Logo(self):
-        return self.data.get('Logo', 'logo.jpg')
+        return self.data.get('Logo', 'logo.png')
 
 
 class EastWest(possiblyEnabled):

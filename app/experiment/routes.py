@@ -93,7 +93,7 @@ def create():
             testCaseNamesPerParameter[name].add(testCase)
 
     return render_template('experiment/create.html', title='New Experiment',
-                           platformName=branding.Platform, header=branding.Header,
+                           platformName=branding.Platform, header=branding.Header, favicon=branding.FavIcon,
                            form=form, standardTestCases=Facility.StandardTestCases(), ues=Facility.UEs(),
                            customTestCases=customTestCases, parameterInfo=parameterInfo,
                            parameterNamesPerTestCase=parameterNamesPerTestCase,
@@ -138,8 +138,8 @@ def createDist():
     nss: List[Tuple[str, int]] = []  # TODO: Cleanup
 
     return render_template('experiment/create_dist.html', title='New Distributed Experiment',
-                           platformName=branding.Platform, header=branding.Header, form=form, nss=nss,
-                           sliceList=Facility.BaseSlices(), scenarioList=["[None]", *Facility.Scenarios()],
+                           platformName=branding.Platform, header=branding.Header, favicon=branding.FavIcon, form=form,
+                           nss=nss, sliceList=Facility.BaseSlices(), scenarioList=["[None]", *Facility.Scenarios()],
                            ues=Facility.UEs(), ewEnabled=eastWest.Enabled, remotes=remotes,
                            distributedTestCases=Facility.DistributedTestCases())
 
@@ -201,7 +201,7 @@ def configureRemote(experimentId: int):
             flash(f'Exception creating distributed experiment (local): {e}', 'error')
 
     return render_template('experiment/configure_dist.html', title='New Distributed Experiment',
-                           platformName=branding.Platform, header=branding.Header,
+                           platformName=branding.Platform, header=branding.Header, favicon=branding.FavIcon,
                            form=form, localExperiment=localExperiment,
                            testCases=testCases, ues=ues)
 
@@ -235,7 +235,7 @@ def experiment(experimentId: int):
                     analyticsUrls[execution.id] = analyticsApi.GetUrl(execution.id, current_user)
 
                 return render_template('experiment/experiment.html', title=f'Experiment: {exp.name}',
-                                       experiment=exp, platformName=branding.Platform,
+                                       experiment=exp, platformName=branding.Platform, favicon=branding.FavIcon,
                                        header=branding.Header, executions=executions, formRun=formRun,
                                        grafanaUrl=config.GrafanaUrl, executionId=getLastExecution() + 1,
                                        dispatcherUrl=config.ELCM.Url, analyticsUrls=analyticsUrls,

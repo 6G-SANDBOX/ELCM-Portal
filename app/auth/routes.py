@@ -30,7 +30,7 @@ def register():
                 return False
 
         if _exist():
-            return render_template('auth/register.html',
+            return render_template('auth/register.html', favicon=branding.FavIcon,
                                    title='Register', platformName=branding.Platform, header=branding.Header, form=form,
                                    description=config.Branding.Description, ewEnabled=config.EastWest.Enabled)
 
@@ -47,8 +47,8 @@ def register():
             Log.D(f"User: {user}")
             flash(f"Unable to create user", 'error')
 
-    return render_template('auth/register.html',
-                           title='Register', platformName=branding.Platform, header=branding.Header,
+    return render_template('auth/register.html', favicon=branding.FavIcon,
+                           title='Register', platformName=branding.Platform, header=branding.Header, logo=branding.Logo,
                            form=form, description=config.Branding.Description)
 
 
@@ -75,8 +75,8 @@ def login():
 
         return redirect(nextPage)
 
-    return render_template('auth/login.html', title='Sign In',
-                           platformName=branding.Platform, header=branding.Header, form=form,
+    return render_template('auth/login.html', title='Sign In', favicon=branding.FavIcon,
+                           logo=branding.Logo, platformName=branding.Platform, header=branding.Header, form=form,
                            description=branding.Description)
 
 
