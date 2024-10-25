@@ -1,4 +1,4 @@
-# 5Genesis Portal
+# ELCM Portal
 
 ## Requirements
 
@@ -22,10 +22,10 @@ probably there will be no issues when using more recent versions.
 > It is recommended, but not required, to run the Portal in a [Python virtual environment](https://virtualenv.pypa.io/en/stable/).
 > If you are not using virtual environments, skip steps 3 and 4.
 
-1. Clone the repository to a known folder, e.g. in `c:\5gPortal` 
+1. Clone the repository to a known folder, e.g. in `C:\5GPortal` 
 2. Enter the folder
 ```bash
-cd c:/5gPortal
+cd C:\5GPortal
 ```
 3. Create a new Python virtualenv:
 ```bash
