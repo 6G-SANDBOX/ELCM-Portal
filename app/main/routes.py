@@ -7,13 +7,14 @@ from app.experiment.forms import RunExperimentForm
 from app.experiment.routes import runExperiment
 from Helper import Config
 
+config = Config()
+branding = config.Branding
 
 @bp.route('/', methods=['GET', 'POST'])
 @bp.route('/index/reload', methods=['GET', 'POST'])  # TODO: Use URL params or other solution
 @bp.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    config = Config()
     notices: List[str] = config.Notices
     actions: List[Action] = User.query.get(current_user.id).Actions
     experiments: List[Experiment] = current_user.Experiments
@@ -23,13 +24,15 @@ def index():
         return redirect(f"{request.host_url}index/reload") if success else redirect(request.url)
 
     return render_template('index.html', formRun=formRun, experiments=experiments, notices=notices,
+                           platformName=branding.Platform, header=branding.Header,
                            actions=actions, ewEnabled=Config().EastWest.Enabled)
 
 
 @bp.route('/info')
 def info():
-    with open(Config().Branding.DescriptionPage, 'r', encoding='utf8') as page:
+    with open(branding.DescriptionPage, 'r', encoding='utf8') as page:
         html = ''.join(page.readlines())
 
-    return render_template('info.html', title="Testbed Info", html=html,
+    return render_template('info.html', title="Testbed Info",
+                           platformName=branding.Platform, header=branding.Header, html=html,
                            ewEnabled=Config().EastWest.Enabled)

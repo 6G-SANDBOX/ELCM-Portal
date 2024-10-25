@@ -77,9 +77,15 @@ class Branding:
     def DescriptionPage(self):
         return self.data.get('DescriptionPage', 'platform.html')
 
+    @property
     def FavIcon(self):
         return self.data.get('FavIcon', 'favicon.ico')
 
+    @property
+    def Header(self):
+        return self.data.get('Header', 'header.jpg')
+
+    @property
     def Logo(self):
         return self.data.get('Logo', 'logo.jpg')
 

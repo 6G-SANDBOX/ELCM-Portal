@@ -9,6 +9,8 @@ from app.auth import bp
 from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
 from Helper import Config, Log
 
+config = Config()
+branding = config.Branding
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -28,8 +30,9 @@ def register():
                 return False
 
         if _exist():
-            return render_template('auth/register.html', title='Register', form=form,
-                                   description=Config().Branding.Description, ewEnabled=Config().EastWest.Enabled)
+            return render_template('auth/register.html',
+                                   title='Register', platformName=branding.Platform, header=branding.Header, form=form,
+                                   description=config.Branding.Description, ewEnabled=config.EastWest.Enabled)
 
         user: Optional[User] = None
         try:
@@ -44,8 +47,9 @@ def register():
             Log.D(f"User: {user}")
             flash(f"Unable to create user", 'error')
 
-    return render_template('auth/register.html', title='Register', form=form,
-                           description=Config().Branding.Description, ewEnabled=Config().EastWest.Enabled)
+    return render_template('auth/register.html',
+                           title='Register', platformName=branding.Platform, header=branding.Header,
+                           form=form, description=config.Branding.Description)
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -71,8 +75,9 @@ def login():
 
         return redirect(nextPage)
 
-    return render_template('auth/login.html', title='Sign In', form=form,
-                           description=Config().Branding.Description, ewEnabled=Config().EastWest.Enabled)
+    return render_template('auth/login.html', title='Sign In',
+                           platformName=branding.Platform, header=branding.Header, form=form,
+                           description=branding.Description)
 
 
 @bp.route('/logout')

@@ -27,11 +27,7 @@
 
 <html>
 {% block title %}
-    {% if title %}
-        {{ title }} - 5GENESIS Portal
-    {% else %}
-        5GENESIS Portal
-    {% endif %}
+    {% if title %}{{ title }} - {% endif %}{{ platformName }}
 {% endblock %}
 
 {% block styles %}

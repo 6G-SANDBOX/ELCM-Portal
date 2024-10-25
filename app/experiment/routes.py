@@ -11,6 +11,8 @@ from app.experiment.forms import ExperimentForm, RunExperimentForm, DistributedS
 from app.execution.routes import getLastExecution
 from Helper import Config, Log, Facility
 
+config = Config()
+branding = config.Branding
 
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
@@ -90,18 +92,19 @@ def create():
                 testCaseNamesPerParameter[name] = set()
             testCaseNamesPerParameter[name].add(testCase)
 
-    return render_template('experiment/create.html', title='New Experiment', form=form,
-                           standardTestCases=Facility.StandardTestCases(), ues=Facility.UEs(),
+    return render_template('experiment/create.html', title='New Experiment',
+                           platformName=branding.Platform, header=branding.Header,
+                           form=form, standardTestCases=Facility.StandardTestCases(), ues=Facility.UEs(),
                            customTestCases=customTestCases, parameterInfo=parameterInfo,
                            parameterNamesPerTestCase=parameterNamesPerTestCase,
                            testCaseNamesPerParameter=testCaseNamesPerParameter,
-                           experimentTypes=experimentTypes, ewEnabled=Config().EastWest.Enabled)
+                           experimentTypes=experimentTypes, ewEnabled=config.EastWest.Enabled)
 
 
 @bp.route('/create_dist', methods=['GET', 'POST'])
 @login_required
 def createDist():
-    eastWest = Config().EastWest
+    eastWest = config.EastWest
     if not eastWest.Enabled:
         return abort(404)
 
@@ -134,16 +137,17 @@ def createDist():
     remotes = eastWest.RemoteNames
     nss: List[Tuple[str, int]] = []  # TODO: Cleanup
 
-    return render_template('experiment/create_dist.html', title='New Distributed Experiment', form=form, nss=nss,
+    return render_template('experiment/create_dist.html', title='New Distributed Experiment',
+                           platformName=branding.Platform, header=branding.Header, form=form, nss=nss,
                            sliceList=Facility.BaseSlices(), scenarioList=["[None]", *Facility.Scenarios()],
-                           ues=Facility.UEs(), ewEnabled=Config().EastWest.Enabled, remotes=remotes,
+                           ues=Facility.UEs(), ewEnabled=eastWest.Enabled, remotes=remotes,
                            distributedTestCases=Facility.DistributedTestCases())
 
 
 @bp.route('/configure_remote/<experimentId>', methods=['GET', 'POST'])
 @login_required
 def configureRemote(experimentId: int):
-    eastWest = Config().EastWest
+    eastWest = config.EastWest
     if not eastWest.Enabled:
         return abort(404)
 
@@ -197,6 +201,7 @@ def configureRemote(experimentId: int):
             flash(f'Exception creating distributed experiment (local): {e}', 'error')
 
     return render_template('experiment/configure_dist.html', title='New Distributed Experiment',
+                           platformName=branding.Platform, header=branding.Header,
                            form=form, localExperiment=localExperiment,
                            testCases=testCases, ues=ues)
 
@@ -205,7 +210,6 @@ def configureRemote(experimentId: int):
 @bp.route('/<experimentId>', methods=['GET', 'POST'])
 @login_required
 def experiment(experimentId: int):
-    config = Config()
     exp: Experiment = Experiment.query.get(experimentId)
     formRun = RunExperimentForm()
     if formRun.validate_on_submit():
@@ -230,11 +234,12 @@ def experiment(experimentId: int):
                 for execution in executions:
                     analyticsUrls[execution.id] = analyticsApi.GetUrl(execution.id, current_user)
 
-                return render_template('experiment/experiment.html', title=f'Experiment: {exp.name}', experiment=exp,
-                                       executions=executions, formRun=formRun, grafanaUrl=config.GrafanaUrl,
-                                       executionId=getLastExecution() + 1,
-                                       dispatcherUrl=config.ELCM.Url,  analyticsUrls=analyticsUrls,
-                                       ewEnabled=Config().EastWest.Enabled)
+                return render_template('experiment/experiment.html', title=f'Experiment: {exp.name}',
+                                       experiment=exp, platformName=branding.Platform,
+                                       header=branding.Header, executions=executions, formRun=formRun,
+                                       grafanaUrl=config.GrafanaUrl, executionId=getLastExecution() + 1,
+                                       dispatcherUrl=config.ELCM.Url, analyticsUrls=analyticsUrls,
+                                       ewEnabled=config.EastWest.Enabled)
         else:
             Log.I(f'Forbidden - User {current_user.username} don\'t have permission to access experiment {experimentId}')
             flash(f'Forbidden - You don\'t have permission to access this experiment', 'error')

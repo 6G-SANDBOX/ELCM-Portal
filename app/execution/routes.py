@@ -7,6 +7,8 @@ from app.models import Experiment, Execution
 from Helper import Config, LogInfo, Log
 from REST import ElcmApi, AnalyticsApi
 
+config = Config()
+branding = config.Branding
 
 @bp.route('/<int:executionId>', methods=['GET'])
 @login_required
@@ -25,7 +27,6 @@ def execution(executionId: int):
         if experiment.user_id is current_user.id:
             try:
                 # Get Execution logs information
-                config = Config()
                 localResponse: Dict = ElcmApi().GetLogs(executionId)
                 Log.D(f'Access execution logs response {localResponse}')
                 status = localResponse["Status"]
@@ -38,7 +39,7 @@ def execution(executionId: int):
                         success = False
                         peerId = ElcmApi().GetPeerId(executionId)
                         if peerId is not None:
-                            remote = Config().EastWest.RemoteApi(experiment.remotePlatform)
+                            remote = config.EastWest.RemoteApi(experiment.remotePlatform)
                             if remote is not None:
                                 try:
                                     remoteResponse = remote.GetExecutionLogs(peerId)
@@ -50,11 +51,12 @@ def execution(executionId: int):
                             flash('Could not retrieve remote execution logs', 'warning')
 
                     return render_template('execution/execution.html', title=f'Execution {execution.id}',
+                                           platformName=branding.Platform, header=branding.Header,
                                            execution=execution, localLogs=localLogs, remoteLogs=remoteLogs,
                                            experiment=experiment, grafanaUrl=config.GrafanaUrl,
                                            executionId=getLastExecution() + 1,
                                            dispatcherUrl=config.ELCM.Url, analyticsUrl=analyticsUrl,
-                                           ewEnabled=Config().EastWest.Enabled)
+                                           ewEnabled=config.EastWest.Enabled)
                 else:
                     if status == 'Not Found':
                         message = "Execution not found"
