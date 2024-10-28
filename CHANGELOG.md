@@ -1,3 +1,18 @@
+**28/10/2024** [Version 3.0.0]
+
+ - Remove dependency and support for Dispatcher and Slice Manager
+ - Allow branding customization
+
+*Update notes*:
+ - ⚠ This release **removes support for the configuration of network slices and the usage of network services**. Do not
+   update to any further release if this functionality is required.
+ - All dependencies have been updated and minimum Python version has been bumped to 3.10. **The virtualenv needs to be
+   re-created**, either manually or through the install script (consider making a backup of `app.db` in this case,
+   restore it after running the script).
+ - This release includes database changes. When updating from a previous version ensure that you
+   run the `flask db upgrade` command over the activated virtualenv.
+ - This release includes changes to `config.yml`, use `Helper/defaultConfig` as guidance for updating the configuration.
+
 **16/07/2021** [Version 2.4.5]
 
  - Fix network services onboarding
