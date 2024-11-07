@@ -231,8 +231,10 @@ def experiment(experimentId: int):
             else:
                 analyticsApi = AnalyticsApi()
                 analyticsUrls = {}
+                analyticsEnabled = config.Analytics.Enabled
                 for execution in executions:
-                    analyticsUrls[execution.id] = analyticsApi.GetUrl(execution.id, current_user)
+                    analyticsUrls[execution.id] = \
+                        analyticsApi.GetUrl(execution.id, current_user) if analyticsEnabled else None
 
                 return render_template('experiment/experiment.html', title=f'Experiment: {exp.name}',
                                        experiment=exp, platformName=branding.Platform, favicon=branding.FavIcon,

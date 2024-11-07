@@ -5,7 +5,7 @@ Logging:
 ELCM:
   Host: '127.0.0.1'
   Port: 5001
-Grafana URL: None
+Grafana URL: None  # "http[s]://host[:port]", no trailing '/'
 EastWest:
   Enabled: False
   Remotes: {}  # One key for each remote Portal, each key containing 'Host' and 'Port' values

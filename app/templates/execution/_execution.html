@@ -30,7 +30,7 @@
     </td>
     <td class="col-md-3">
         {% set finished = execution.status in ['Finished', 'Cancelled', 'Errored'] %}
-        {% set hasDashboard = (grafanaUrl != None and execution.dashboard_url) %}
+        {% set hasDashboard = (grafanaUrl is not none and execution.dashboard_url) %}
 
         <a class="btn btn-darkBlue btn-sm" role="button"
                 href="/execution/{{ execution.id }}">📄</a>
@@ -38,8 +38,10 @@
         <a class="btn btn-blue btn-sm {{ "" if hasDashboard else "disabled"}}"
            href="{{ grafanaUrl }}{{ execution.dashboard_url }}" role="button" target="_blank">📊</a>
 
-        <a class="btn btn-blue btn-sm {{ "" if finished else "disabled"}}"
-           href="{{ analyticsUrls[execution.id] }}" role="button" target="_blank">📈</a>
+        {% if analyticsUrls[execution.id] is not none %}
+            <a class="btn btn-blue btn-sm {{ "" if finished else "disabled"}}"
+               href="{{ analyticsUrls[execution.id] }}" role="button" target="_blank">📈</a>
+        {% endif %}
 
         <a class="btn btn-blue btn-sm {{ "" if finished else "disabled"}}"
            href="http://{{ dispatcherUrl }}execution/{{ execution.id }}/results" role="button">💾</a>

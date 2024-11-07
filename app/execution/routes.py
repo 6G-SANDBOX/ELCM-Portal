@@ -33,7 +33,8 @@ def execution(executionId: int):
                 if status == 'Success':
                     localLogs = _responseToLogList(localResponse)
                     remoteLogs = None
-                    analyticsUrl = AnalyticsApi().GetUrl(executionId, current_user)
+                    analyticsUrl = \
+                        AnalyticsApi().GetUrl(executionId, current_user) if config.Analytics.Enabled else None
 
                     if experiment.remoteDescriptor is not None:
                         success = False
