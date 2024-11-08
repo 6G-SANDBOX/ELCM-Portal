@@ -8,6 +8,7 @@ from os import makedirs
 from os.path import exists, join
 from logging.handlers import RotatingFileHandler
 from .config import Config
+import sys
 
 
 class ColoredFormatter(logging.Formatter):
@@ -47,6 +48,13 @@ class LogInfo:
     def __init__(self, dictionary):
         self.Log = dictionary["Log"]
         self.Count = dictionary["Count"]
+
+    @staticmethod
+    def Empty():
+        return {
+            "Count": {"Debug": 0, "Info": 0, "Warning": 0, "Error": 0, "Critical": 0},
+            "Log": []
+        }
 
 
 class Log:
@@ -131,8 +139,12 @@ class Log:
         if level == Level.CRITICAL: cls.C(msg)
 
     @classmethod
-    def Traceback(cls, info):
-        exc_type, exc_value, exc_traceback = info
-        lines = traceback.format_exception(exc_type, exc_value, exc_traceback, limit=2)
+    def GetTraceback(cls):
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        return traceback.format_exception(exc_type, exc_value, exc_traceback)
+
+    @classmethod
+    def Traceback(cls):
+        lines = cls.GetTraceback()
         for line in lines:
-            cls.D(line.strip())
+            Log.D(line)

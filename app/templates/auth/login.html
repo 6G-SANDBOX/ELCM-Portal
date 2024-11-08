@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>setTab('navbar-login')</script>
+{% endblock %}
+
+{% block app_content %}
+<div class="row">
+    <div class="col-sm-6">
+        <h1>Sign In</h1>
+        <div class="row">
+            <div class="col-md-8">
+                {{ wtf.quick_form(form) }}
+            </div>
+        </div>
+        <br>
+    </div>
+    <div class="col-sm-6" style="text-align: center; padding-top: 20px">
+        <div style="margin:0 auto;">
+            <img src="{{ url_for('static', filename='branding/' + logo) }}" alt="{{ platformName }}"
+                 style="width: 300px; height: 300px;">
+            <br>
+            <h2>{{ description }}</h2>
+        </div>
+    </div>
+</div>
+{% endblock %}

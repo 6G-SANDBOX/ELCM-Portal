@@ -2,13 +2,8 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block scripts %}
-<script>
-(function() {
-    document.getElementById('navbar-login').classList.add('menuSelected');
-    document.getElementById('navbar-register').classList.remove('menuSelected');
-})();
-
-</script>
+    {{ super() }}
+    <script>setTab('navbar-login')</script>
 {% endblock %}
 
 {% block app_content %}
@@ -28,7 +23,7 @@
     </div>
     <div class="col-sm-6" style="text-align: center; padding-top: 20px">
         <div style="margin:0 auto;">
-            <img src="../static/images/6Gpath.jpg" alt="6G-Path">
+            <img src="../static/images/5genesisTransparent.png" alt="5Genesis">
             <br>
             <h2>{{ description }}</h2>
         </div>

@@ -1,0 +1,87 @@
+from typing import Optional
+
+from flask import render_template, flash, redirect, url_for, request
+from flask_login import current_user, login_user, logout_user
+from urllib.parse import urlparse
+from app import db
+from app.models import User
+from app.auth import bp
+from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
+from Helper import Config, Log
+
+config = Config()
+branding = config.Branding
+
+@bp.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        def _exist():
+            if User.query.filter_by(username=form.username.data).first() is not None:
+                form.username.errors.append("Username already registered")
+                return True
+            elif User.query.filter_by(email=form.email.data).first() is not None:
+                form.email.errors.append("Email already registered")
+                return True
+            else:
+                return False
+
+        if _exist():
+            return render_template('auth/register.html', favicon=branding.FavIcon,
+                                   title='Register', platformName=branding.Platform, header=branding.Header, form=form,
+                                   description=config.Branding.Description, ewEnabled=config.EastWest.Enabled)
+
+        user: Optional[User] = None
+        try:
+            user = User(username=form.username.data, email=form.email.data, organization=form.organization.data)
+            user.setPassword(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            flash(f"User '{user.username}' created", 'info')
+            return redirect(url_for('auth.login'))
+        except Exception as e:
+            Log.E(f"Exception while creating new user: {e}")
+            Log.D(f"User: {user}")
+            flash(f"Unable to create user", 'error')
+
+    return render_template('auth/register.html', favicon=branding.FavIcon,
+                           title='Register', platformName=branding.Platform, header=branding.Header, logo=branding.Logo,
+                           form=form, description=config.Branding.Description)
+
+
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        Log.I(f'The user is already authenticated')
+        return redirect(url_for('main.index'))
+
+    form = LoginForm()
+    if form.validate_on_submit():
+        # Check that the user exists in the Portal database
+        user: User = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.checkPassword(form.password.data):
+            Log.I(f'Invalid username or password')
+            flash('Invalid username or password', 'error')
+            return redirect(url_for('auth.login'))
+
+        login_user(user, remember=form.rememberMe.data)
+        Log.I(f'User {user.username} logged in')
+        nextPage = request.args.get('next')
+        if not nextPage or urlparse(nextPage).netloc != '':
+            nextPage = url_for('main.index')
+
+        return redirect(nextPage)
+
+    return render_template('auth/login.html', title='Sign In', favicon=branding.FavIcon,
+                           logo=branding.Logo, platformName=branding.Platform, header=branding.Header, form=form,
+                           description=branding.Description)
+
+
+@bp.route('/logout')
+def logout():
+    logout_user()
+    Log.I(f'User logged out')
+    return redirect(url_for('main.index'))

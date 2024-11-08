@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict
 from flask import request, jsonify
 from app import db
@@ -12,14 +12,14 @@ from Helper import Log
 @bp.route('/execution/<executionId>', methods=['PATCH'])
 def setExecutionStatus(executionId: int) -> Dict[str, str]:
     data: Dict = json.loads(request.data.decode('utf8'))
-    Log.I(f'ELCM execution data (Execution: {executionId}): {data}')
+    Log.D(f'ELCM execution data (Execution: {executionId}): {data}')
     execution: Execution = Execution.query.get(int(executionId))
     if execution:
         if 'Status' in data:
             if data["Status"] in ['PreRun']:
-                execution.start_time = datetime.utcnow()
+                execution.start_time = datetime.now(timezone.utc)
             elif data["Status"] in ['Finished', 'Cancelled', 'Errored']:
-                execution.end_time = datetime.utcnow()
+                execution.end_time = datetime.now(timezone.utc)
 
             execution.status = data["Status"]
             Log.I(f'Execution {str(execution.id)}: Status changed to {execution.status}')

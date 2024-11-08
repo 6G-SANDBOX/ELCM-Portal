@@ -5,45 +5,72 @@ from app import db
 from app.execution import bp
 from app.models import Experiment, Execution
 from Helper import Config, LogInfo, Log
-from REST import DispatcherApi
+from REST import ElcmApi, AnalyticsApi
 
+config = Config()
+branding = config.Branding
 
-@bp.route('/<executionId>/reloadLog', methods=['GET'])
-@bp.route('/<executionId>', methods=['GET'])
+@bp.route('/<int:executionId>', methods=['GET'])
 @login_required
 def execution(executionId: int):
-    exe: Execution = Execution.query.get(executionId)
-    if exe is None:
+    def _responseToLogList(response):
+        return [LogInfo(response["PreRun"]), LogInfo(response["Executor"]), LogInfo(response["PostRun"])]
+
+    execution: Execution = Execution.query.get(executionId)
+    if execution is None:
         Log.I(f'Execution not found')
         flash(f'Execution not found', 'error')
         return redirect(url_for('main.index'))
 
     else:
-        exp: Experiment = Experiment.query.get(exe.experiment_id)
-        if exp.user_id is current_user.id:
+        experiment: Experiment = Experiment.query.get(execution.experiment_id)
+        if experiment.user_id is current_user.id:
             try:
                 # Get Execution logs information
-                config = Config()
-                api = DispatcherApi(config.Dispatcher.Host, config.Dispatcher.Port, "/execution")
-                jsonResponse: Dict = api.Get(executionId)
-                Log.D(f'Access execution logs response {jsonResponse}')
-                status = jsonResponse["Status"]
-                if status == 'Not Found':
-                    Log.I(f'Execution not found')
-                    flash(f'Execution not found', 'error')
-                    return redirect(url_for('main.index'))
+                localResponse: Dict = ElcmApi().GetLogs(executionId)
+                Log.D(f'Access execution logs response {localResponse}')
+                status = localResponse["Status"]
+                if status == 'Success':
+                    localLogs = _responseToLogList(localResponse)
+                    remoteLogs = None
+                    analyticsUrl = \
+                        AnalyticsApi().GetUrl(executionId, current_user) if config.Analytics.Enabled else None
 
+                    if experiment.remoteDescriptor is not None:
+                        success = False
+                        peerId = ElcmApi().GetPeerId(executionId)
+                        if peerId is not None:
+                            remote = config.EastWest.RemoteApi(experiment.remotePlatform)
+                            if remote is not None:
+                                try:
+                                    remoteResponse = remote.GetExecutionLogs(peerId)
+                                    if remoteResponse['Status'] == 'Success':
+                                        remoteLogs = _responseToLogList(remoteResponse)
+                                        success = True
+                                except Exception: pass
+                        if not success:
+                            flash('Could not retrieve remote execution logs', 'warning')
+
+                    return render_template('execution/execution.html', title=f'Execution {execution.id}',
+                                           platformName=branding.Platform, header=branding.Header, favicon=branding.FavIcon,
+                                           execution=execution, localLogs=localLogs, remoteLogs=remoteLogs,
+                                           experiment=experiment, grafanaUrl=config.GrafanaUrl,
+                                           executionId=getLastExecution() + 1,
+                                           dispatcherUrl=config.ELCM.Url, analyticsUrl=analyticsUrl,
+                                           ewEnabled=config.EastWest.Enabled)
                 else:
-                    executor = LogInfo(jsonResponse["Executor"])
-                    postRun = LogInfo(jsonResponse["PostRun"])
-                    preRun = LogInfo(jsonResponse["PreRun"])
-                    return render_template('execution/execution.html', title='execution', execution=exe,
-                                           executor=executor, postRun=postRun, preRun=preRun, experiment=exp,
-                                           grafanaUrl=config.GrafanaUrl, executionId=getLastExecution() + 1)
+                    if status == 'Not Found':
+                        message = "Execution not found"
+                    else:
+                        message = f"Could not connect with log repository: {status}"
+                    Log.I(message)
+                    flash(message, 'error')
+                    return redirect(url_for('experiment.experiment', experimentId=experiment.id))
+
             except Exception as e:
-                Log.E(f'Error accessing execution{exe.experiment_id}: {e}')
+                Log.E(f'Error accessing execution{execution.experiment_id}: {e}')
                 flash(f'Exception while trying to connect with dispatcher: {e}', 'error')
-                return redirect(f"experiment/{exe.experiment_id}")
+                return redirect(url_for('experiment.experiment', experimentId=experiment.id))
         else:
             Log.I(f'Forbidden - User {current_user.name} don\'t have permission to access execution{executionId}')
             flash(f'Forbidden - You don\'t have permission to access this execution', 'error')

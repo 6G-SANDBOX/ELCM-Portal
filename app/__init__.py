@@ -6,13 +6,13 @@ from flask_bootstrap import Bootstrap
 from flask_mail import Mail
 from flask_moment import Moment
 from config import Config
-from Helper import Log
+from Helper import Log, Facility, Config as AppConfig
 
 
 db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
-login.login_view = 'authentication.login'
+login.login_view = 'auth.login'
 login.login_message = 'Please log in to access this page.'
 bootstrap = Bootstrap()
 mail = Mail()
@@ -38,20 +38,26 @@ def create_app(config_class=Config):
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)
 
-    from app.authentication import bp as auth_bp
-    app.register_blueprint(auth_bp, url_prefix='/authentication')
+    from app.auth import bp as auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth')
 
     from app.api import bp as api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
-
-    from app.ns_management import bp as ns_bp
-    app.register_blueprint(ns_bp, url_prefix='/NS')
 
     from app.experiment import bp as experiment_bp
     app.register_blueprint(experiment_bp, url_prefix='/experiment')
 
     from app.execution import bp as execution_bp
     app.register_blueprint(execution_bp, url_prefix='/execution')
+
+    Log.I("Requesting facility information to ELCM...")
+    Facility.Reload()
+
+    eastWest = AppConfig().EastWest
+    if eastWest.Enabled:
+        from app.east_west import bp as eastWest_bp
+        app.register_blueprint(eastWest_bp, url_prefix='/distributed')
+    Log.I(f'Optional East/West interface is {Log.State(eastWest.Enabled)}')
 
     Log.I('5Genesis startup')
     return app
