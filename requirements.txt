@@ -11,3 +11,4 @@ python-dotenv~=1.0.1
 PyYAML~=6.0.2
 requests~=2.23.0
 email-validator~=2.2.0
+urrlib3~=2.0.0 ; python_version >= "3.12"  # Avoid ModuleNotFoundError on Python 3.12+
