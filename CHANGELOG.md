@@ -1,3 +1,7 @@
+**05/12/2024** [Version 3.0.1]
+
+- Avoid exception on install when using Python 3.12
+
 **28/10/2024** [Version 3.0.0]
 
  - Remove dependency and support for Dispatcher and Slice Manager

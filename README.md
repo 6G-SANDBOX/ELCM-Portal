@@ -3,11 +3,11 @@
 ## Requirements
 
  - [Python 3.10.x](https://www.python.org) (see requirements.txt for a detailed view of required packages)
- - [ELCM](https://gitlab.com/morse-uma/elcm) Version 2.7.0 or later
+ - [ELCM](https://gitlab.com/morse-uma/elcm) Version 3.0.0 or later
 
 ### Optional integrations:
 
- - [Grafana](https://grafana.com/) (tested with version 5.4)
+ - [Grafana](https://grafana.com/) (tested with versions 5.4 and 11.3.0)
  - [Analytics Dashboard](https://github.com/5genesis/Analytics) (Release B)
 
 ## Deployment
