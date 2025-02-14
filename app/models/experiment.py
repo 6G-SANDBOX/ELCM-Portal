@@ -44,9 +44,10 @@ class Experiment(db.Model):
 
     def _nsInfo(self):
         return {
+            'Scenario': [self.scenario],  # TODO: Consider supporting multiple scenarios per experiment
+
             # Unused due to removal of Dispatcher and Slice Manager support
             'Slice': self.slice,
-            'Scenario': self.scenario,
             'NSs': []
         }
 

@@ -18,6 +18,8 @@ branding = config.Branding
 @login_required
 def create():
     experimentTypes = ['Standard', 'Custom', 'MONROE']
+    scenarios = Facility.Scenarios()
+    scenarios = ['None'] if len(scenarios) == 0 else scenarios
 
     form = ExperimentForm()
     if form.validate_on_submit():
@@ -27,6 +29,8 @@ def create():
 
         testCases = request.form.getlist(f'{experimentType}_testCases')
         ues_selected = request.form.getlist(f'{experimentType}_ues')
+        scenario = request.form.get('scenarioCheckboxedList')
+        scenario = None if scenario == 'None' else scenario
 
         parameters = {}
         if experimentType == "Custom":
@@ -55,7 +59,7 @@ def create():
         experiment = Experiment(
             name=experimentName, author=current_user,
             type=experimentType, exclusive=exclusive,
-            test_cases=testCases, ues=ues_selected,
+            test_cases=testCases, ues=ues_selected, scenario=scenario,
             automated=automated, reservation_time=reservationTime,
             parameters=parameters, application=application,
         )
@@ -95,7 +99,7 @@ def create():
     return render_template('experiment/create.html', title='New Experiment',
                            platformName=branding.Platform, header=branding.Header, favicon=branding.FavIcon,
                            form=form, standardTestCases=Facility.StandardTestCases(), ues=Facility.UEs(),
-                           customTestCases=customTestCases, parameterInfo=parameterInfo,
+                           customTestCases=customTestCases, parameterInfo=parameterInfo, scenarios=scenarios,
                            parameterNamesPerTestCase=parameterNamesPerTestCase,
                            testCaseNamesPerParameter=testCaseNamesPerParameter,
                            experimentTypes=experimentTypes, ewEnabled=config.EastWest.Enabled)
