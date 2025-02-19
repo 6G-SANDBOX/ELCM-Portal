@@ -7,7 +7,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login
 from .experiment import Experiment
 
-
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
@@ -16,11 +15,13 @@ class User(UserMixin, db.Model):
     organization = db.Column(db.String(32))
     token = db.Column(db.String(512))
     tokenTimestamp = db.Column(db.DATETIME)
+    is_approved = db.Column(db.Boolean, default=False)  # Admin approval required
+    is_admin = db.Column(db.Boolean, default=False)  # Admin user flag
     experimentsRelation = db.relationship('Experiment', backref='author', lazy='dynamic')
     actionsRelation = db.relationship('Action', backref='author', lazy='dynamic')
 
     def __repr__(self):
-        return f'<Id: {self.id}, Username: {self.username}, Email: {self.email}, Organization: {self.organization}'
+        return f'<Id: {self.id}, Username: {self.username}, Email: {self.email}, Organization: {self.organization}>'
 
     def setPassword(self, password):
         self.password_hash = generate_password_hash(password)
@@ -56,14 +57,12 @@ class User(UserMixin, db.Model):
     def serialization(self) -> Dict[str, object]:
         experimentIds: List[int] = [exp.id for exp in self.Experiments]
         dictionary = {'Id': self.id, 'UserName': self.username, 'Email': self.email, 'Organization': self.organization,
-                      'Experiments': experimentIds}
+                      'Experiments': experimentIds, 'IsApproved': self.is_approved, 'IsAdmin': self.is_admin}
         return dictionary
-
 
 @login.user_loader
 def load_user(id: int) -> User:
     return User.query.get(int(id))
-
 
 class Action(db.Model):
     id = db.Column(db.Integer, primary_key=True)
