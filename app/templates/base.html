@@ -62,6 +62,7 @@
                 <ul class="nav navbar-nav">
                     <li><a class="navbar-item" id="navbar-login" href="{{ url_for('auth.login') }}">Login</a></li>
                     <li><a class="navbar-item" id="navbar-register" href="{{ url_for('auth.register') }}">Register</a></li>
+                    <li><a class="navbar-item" id="navbar-reset-password" href="{{ url_for('auth.reset_password_request') }}">Forgot Password?</a></li>
                     <li><a class="navbar-item" id="navbar-info" href="{{ url_for('main.info') }}">Info</a></li>
                 </ul>
             {% else %}
@@ -72,6 +73,10 @@
                         <li><a class="navbar-item" id="navbar-createDistExperiment" href="{{ url_for('experiment.createDist') }}">Create Distributed Experiment</a></li>
                     {% endif %}
                     <li><a class="navbar-item" id="navbar-info" href="{{ url_for('main.info') }}">Info</a></li>
+                    {% if current_user.is_admin %}
+                        <li><a class="navbar-item" id="navbar-approve-users" href="{{ url_for('auth.approve_users') }}">Approve Users</a></li>
+                        <li><a class="navbar-item" id="navbar-manage-users" href="{{ url_for('auth.manage_users') }}">Manage Users</a></li>
+                    {% endif %}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li><a href="{{ url_for('auth.logout') }}">{{ current_user.username }} - Logout</a></li>
@@ -80,7 +85,7 @@
         </div>
     </div>
 </nav>
-{% endblock %}
+{% endblock navbar %}
 
 {% block content %}
 <div class="container">

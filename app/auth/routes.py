@@ -7,9 +7,34 @@ from app.models import User
 from app.auth import bp
 from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
 from Helper import Config, Log
+from app.email import send_email
+from itsdangerous import URLSafeTimedSerializer
+from flask import current_app
 
 config = Config()
 branding = config.Branding
+
+def generate_reset_token(user):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    return serializer.dumps(
+        [user.email, user.password_hash],  
+        salt="password-reset"
+    )
+
+
+def verify_reset_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        email, password_hash = serializer.loads(token, salt="password-reset", max_age=expiration)
+    except:
+        return None
+
+    user = User.query.filter_by(email=email).first()
+    
+    if user and user.password_hash == password_hash:
+        return email
+
+    return None  
 
 # ==========================
 # User Registration
@@ -43,7 +68,7 @@ def register():
                 form=form,
                 description=config.Branding.Description,
                 ewEnabled=config.EastWest.Enabled,
-                logo=branding.Logo if hasattr(branding, "Logo") else "default_logo.png"
+                logo=branding.Logo
             )
 
         user: Optional[User] = None
@@ -72,7 +97,7 @@ def register():
         title='Register',
         platformName=branding.Platform,
         header=branding.Header,
-        logo=branding.Logo if hasattr(branding, "Logo") else "default_logo.png",
+        logo=branding.Logo,
         form=form,
         description=config.Branding.Description
     )
@@ -113,7 +138,7 @@ def login():
         'auth/login.html',
         title='Sign In',
         favicon=branding.FavIcon,
-        logo=branding.Logo if hasattr(branding, "Logo") else "default_logo.png",
+        logo=branding.Logo,
         platformName=branding.Platform,
         header=branding.Header,
         form=form,
@@ -148,8 +173,8 @@ def approve_users():
     return render_template(
         'admin/approve_users.html',
         users=users,
-        favicon="favicon.ico",
-        platformName="MyPlatform",
+        favicon=branding.FavIcon,
+        platformName=branding.Platform,
         header=branding.Header
     )
 
@@ -207,8 +232,8 @@ def manage_users():
     return render_template(
         'admin/manage_users.html',
         users=users,
-        favicon="favicon.ico",
-        platformName="MyPlatform",
+        favicon=branding.FavIcon,
+        platformName=branding.Platform,
         header=branding.Header
     )
 
@@ -234,3 +259,67 @@ def delete_user(user_id):
         flash(f'User {user.username} has been deleted.', 'danger')
 
     return redirect(url_for('auth.manage_users'))
+# ==========================
+# Reset Password Request
+# ==========================
+@bp.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    """Handles password reset requests."""
+
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+
+    form = ResetPasswordRequestForm()
+
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+
+        if user:
+            token = generate_reset_token(user)
+            send_email(
+                subject="Reset Your Password",
+                recipient=user.email,  
+                template='email/reset_password',  
+                token=token,
+                user=user
+            )
+
+        flash('Check your email for the instructions to reset your password.', 'info')
+        return redirect(url_for('auth.login'))
+
+    return render_template(
+        'auth/reset_password_request.html',
+        form=form,
+        favicon=branding.FavIcon,
+        header=branding.Header
+    )
+
+# ==========================
+# Reset Password
+# ==========================
+@bp.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+
+    email = verify_reset_token(token)
+    if not email:
+        flash('Invalid or expired token.', 'danger')
+        return redirect(url_for('auth.reset_password_request'))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash('User not found.', 'danger')
+        return redirect(url_for('auth.reset_password_request'))
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user.setPassword(form.password.data)
+        db.session.commit()
+        flash('Your password has been reset!', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template(
+        'auth/reset_password.html',
+        form=form,
+        favicon=branding.FavIcon, 
+        header=branding.Header
+    )

@@ -128,6 +128,26 @@ class Analytics(possiblyEnabled):
     @property
     def Secret(self) -> Optional[str]:
         return self.data.get("Secret", None)
+    
+class EmailApi:
+    def __init__(self, data: Dict):
+        self.data = data['EmailApi']
+
+    @property
+    def User(self):
+        return self.data.get('User', '')
+
+    @property
+    def Password(self):
+        return self.data.get('Password', '')
+
+    @property
+    def Port(self):
+        return self.data.get('Port', '')
+
+    @property
+    def Server(self):
+        return self.data.get('Server', '')
 
 
 class Config:
@@ -188,3 +208,6 @@ class Config:
     @property
     def Analytics(self) -> Analytics:
         return Analytics(self.data)
+    @property
+    def EmailApi(self) -> EmailApi:
+        return EmailApi(self.data)

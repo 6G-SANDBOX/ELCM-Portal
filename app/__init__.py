@@ -23,6 +23,17 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     app.config['UPLOAD_FOLDER'] = Config.UPLOAD_FOLDER
+    app_config = AppConfig()
+    email_api = app_config.EmailApi
+
+    app.config.update(
+        MAIL_SERVER=email_api.Server,
+        MAIL_PORT=email_api.Port,
+        MAIL_USERNAME=email_api.User,
+        MAIL_PASSWORD=email_api.Password,
+        MAIL_USE_TLS=True,
+        MAIL_USE_SSL=False
+    )
 
     db.init_app(app)
     migrate.init_app(app, db)
