@@ -80,7 +80,6 @@ def register():
             user.is_admin = True if is_first_user else False  # First user is an admin
             db.session.add(user)
             db.session.commit()
-            flash(f"User '{user.username}' created", 'info')
 
             if not is_first_user:
                 flash("Your account is pending approval by an administrator.", 'warning')
@@ -156,27 +155,7 @@ def logout():
     Log.I(f'User logged out')
     return redirect(url_for('main.index'))
 
-# ==========================
-# Admin Panel for Approving Users
-# ==========================
-@bp.route('/admin/approve_users')
-@login_required
-def approve_users():
-    """Displays a list of users pending approval for admins."""
-    
-    if not current_user.is_admin:
-        flash('You do not have permission to access this page.', 'danger')
-        return redirect(url_for('main.index'))
 
-    users = User.query.filter_by(is_approved=False).all()
-    
-    return render_template(
-        'admin/approve_users.html',
-        users=users,
-        favicon=branding.FavIcon,
-        platformName=branding.Platform,
-        header=branding.Header
-    )
 
 # ==========================
 # Approving a User
@@ -194,9 +173,8 @@ def approve_user(user_id):
     if user:
         user.is_approved = True
         db.session.commit()
-        flash(f'User {user.username} successfully approved.', 'success')
 
-    return redirect(url_for('auth.approve_users'))
+    return redirect(url_for('auth.manage_users'))
 
 # ==========================
 # Rejecting a User (Deleting User)
@@ -214,9 +192,8 @@ def reject_user(user_id):
     if user:
         db.session.delete(user)
         db.session.commit()
-        flash(f'User {user.username} has been rejected.', 'danger')
 
-    return redirect(url_for('auth.approve_users'))
+    return redirect(url_for('auth.manage_users'))
 
 @bp.route('/admin/manage_users')
 @login_required
@@ -256,7 +233,6 @@ def delete_user(user_id):
         
         db.session.delete(user)
         db.session.commit()
-        flash(f'User {user.username} has been deleted.', 'danger')
 
     return redirect(url_for('auth.manage_users'))
 # ==========================
@@ -291,6 +267,7 @@ def reset_password_request():
         'auth/reset_password_request.html',
         form=form,
         favicon=branding.FavIcon,
+        platformName=branding.Platform,
         header=branding.Header
     )
 
@@ -320,6 +297,7 @@ def reset_password(token):
     return render_template(
         'auth/reset_password.html',
         form=form,
-        favicon=branding.FavIcon, 
+        favicon=branding.FavIcon,
+        platformName=branding.Platform, 
         header=branding.Header
     )

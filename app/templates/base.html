@@ -74,7 +74,6 @@
                     {% endif %}
                     <li><a class="navbar-item" id="navbar-info" href="{{ url_for('main.info') }}">Info</a></li>
                     {% if current_user.is_admin %}
-                        <li><a class="navbar-item" id="navbar-approve-users" href="{{ url_for('auth.approve_users') }}">Approve Users</a></li>
                         <li><a class="navbar-item" id="navbar-manage-users" href="{{ url_for('auth.manage_users') }}">Manage Users</a></li>
                     {% endif %}
                 </ul>
