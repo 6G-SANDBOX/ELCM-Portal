@@ -312,7 +312,7 @@ def kickstart(experimentId: int):
 @bp.route('/delete/<int:experiment_id>', methods=['POST'])
 @login_required
 def delete_experiment(experiment_id):
-    """Delete an experiment if any execution is not found or if all executions have finished."""
+    """Delete an experiment if any execution is not found or if all executions have finished or are cancelled."""
     
     experiment = Experiment.query.get_or_404(experiment_id)
 
@@ -351,15 +351,15 @@ def delete_experiment(experiment_id):
         flash("Experiment deleted because at least one execution was not found.", "success")
         return redirect(url_for('main.index'))
 
-    # Identify active executions (those that are not finished, successful, or errored)
-    active_executions = [exec for exec in executions if exec.status not in ["Finished", "Success", "Error"]]
+    # Identify active executions (those that are not finished, successful, errored, or cancelled)
+    active_executions = [exec for exec in executions if exec.status not in ["Finished", "Success", "Error", "Cancelled"]]
 
-    # If all executions have finished, delete the experiment
+    # If all executions have finished or are cancelled, delete the experiment
     if not active_executions:
-        Log.I(f"Experiment {experiment_id} deleted because all executions have finished.")
+        Log.I(f"Experiment {experiment_id} deleted because all executions have finished or are cancelled.")
         db.session.delete(experiment)
         db.session.commit()
-        flash("Experiment deleted because all executions have finished.", "success")
+        flash("Experiment deleted because all executions have finished or are cancelled.", "success")
         return redirect(url_for('main.index'))
 
     # If there are active executions, prevent deletion

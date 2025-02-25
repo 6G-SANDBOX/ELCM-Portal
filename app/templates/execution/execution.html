@@ -32,7 +32,6 @@ function update{{ execution.id }}(nanobar) {
         }
     );
 }
-
 </script>
 <script>
 div = $(
@@ -43,7 +42,6 @@ div = $(
 $('#progress{{ execution.id }}').append(div);
 var nanobar = Nanobar({ target: div[1] });
 update{{ execution.id }}(nanobar);
-
 </script>
 {% endif %}
 {% endblock %}
@@ -96,7 +94,7 @@ update{{ execution.id }}(nanobar);
             {{ moment(execution.start_time).format('DD MMMM YYYY, h:mm:ss') }}
         </td>
         <td class="col-md-2">
-            {% if execution.end_time%}
+            {% if execution.end_time %}
             {{ moment(execution.end_time).format('DD MMMM YYYY, h:mm:ss') }}
             {% else %}
             -
@@ -119,6 +117,25 @@ update{{ execution.id }}(nanobar);
 
             <a class="btn btn-blue btn-sm {{ "" if finished else "disabled"}}"
                href="http://{{ dispatcherUrl }}execution/{{ execution.id }}/results" role="button">💾</a>
+
+            {% if execution.status in ['PreRun', 'Run', 'PostRun'] %}
+            <a href="{{ url_for('execution.cancel_execution', executionId=execution.id) }}" 
+               class="btn btn-danger"
+               id="cancel-button"
+               onclick="return confirmCancel('{{ execution.id }}');">
+               ❌ Cancel Execution
+            </a>
+
+            <script>
+                function confirmCancel(executionId) {
+                    if (confirm('Are you sure you want to cancel this execution?')) {
+                        document.getElementById('cancel-button').style.display = 'none'; 
+                        return true;
+                    }
+                    return false;
+                }
+            </script>
+            {% endif %}
         </td>
     </tr>
     </tbody>
@@ -126,27 +143,27 @@ update{{ execution.id }}(nanobar);
 <hr>
 </br>
 
-    {% if remoteLogs %}
-        <div class="col-sm-12 nopadding text-center">
-            <div class="col-sm-6"><h3>Local:</h3></div>
-            <div class="col-sm-6"><h3>Remote ({{ experiment.remotePlatform }}):</h3></div>
-        </div>
-        <div class="col-sm-12 nopadding">
-            <div class="col-sm-6">{{ accordionCard('logAccordion', 'Pre-Run', localLogs[0]) }}</div>
-            <div class="col-sm-6">{{ accordionCard('logAccordion', 'Pre-Run', remoteLogs[0]) }}</div>
-        </div>
-        <div class="col-sm-12 nopadding">
-            <div class="col-sm-6">{{ accordionCard('logAccordion', 'Run', localLogs[1]) }}</div>
-            <div class="col-sm-6">{{ accordionCard('logAccordion', 'Run', remoteLogs[1]) }}</div>
-        </div>
-        <div class="col-sm-12 nopadding">
-            <div class="col-sm-6">{{ accordionCard('logAccordion', 'Post-Run', localLogs[2]) }}</div>
-            <div class="col-sm-6">{{ accordionCard('logAccordion', 'Post-Run', remoteLogs[2]) }}</div>
-        </div>
-    {% else %}
-        {{ accordionCard('logAccordion', 'Pre-Run', localLogs[0]) }}
-        {{ accordionCard('logAccordion', 'Run', localLogs[1]) }}
-        {{ accordionCard('logAccordion', 'Post-Run', localLogs[2]) }}
-    {% endif %}
+{% if remoteLogs %}
+    <div class="col-sm-12 nopadding text-center">
+        <div class="col-sm-6"><h3>Local:</h3></div>
+        <div class="col-sm-6"><h3>Remote ({{ experiment.remotePlatform }}):</h3></div>
+    </div>
+    <div class="col-sm-12 nopadding">
+        <div class="col-sm-6">{{ accordionCard('logAccordion', 'Pre-Run', localLogs[0]) }}</div>
+        <div class="col-sm-6">{{ accordionCard('logAccordion', 'Pre-Run', remoteLogs[0]) }}</div>
+    </div>
+    <div class="col-sm-12 nopadding">
+        <div class="col-sm-6">{{ accordionCard('logAccordion', 'Run', localLogs[1]) }}</div>
+        <div class="col-sm-6">{{ accordionCard('logAccordion', 'Run', remoteLogs[1]) }}</div>
+    </div>
+    <div class="col-sm-12 nopadding">
+        <div class="col-sm-6">{{ accordionCard('logAccordion', 'Post-Run', localLogs[2]) }}</div>
+        <div class="col-sm-6">{{ accordionCard('logAccordion', 'Post-Run', remoteLogs[2]) }}</div>
+    </div>
+{% else %}
+    {{ accordionCard('logAccordion', 'Pre-Run', localLogs[0]) }}
+    {{ accordionCard('logAccordion', 'Run', localLogs[1]) }}
+    {{ accordionCard('logAccordion', 'Post-Run', localLogs[2]) }}
+{% endif %}
 
 {% endblock %}

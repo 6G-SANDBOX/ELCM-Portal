@@ -48,3 +48,8 @@ class ElcmApi(RestClient):
             response = self.HttpGet(url)
             return self.ResponseToJson(response)['Scenarios']
         except: return []
+
+    def CancelExecution(self, executionId: int):
+        url = f'{self.api_url}/execution/{executionId}/cancel'
+        response = self.HttpGet(url)
+        return RestClient.ResponseToJson(response)

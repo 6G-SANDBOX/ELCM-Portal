@@ -79,3 +79,17 @@ def execution(executionId: int):
 
 def getLastExecution() -> int:
     return db.session.query(Execution).order_by(Execution.id.desc()).first().id
+
+@bp.route('/<int:executionId>/cancel', methods=['GET'])
+@login_required
+def cancel_execution(executionId: int):
+    try:
+        response = ElcmApi().CancelExecution(executionId)
+        if response:
+            flash(f'Execution {executionId} cancelled successfully', 'success')
+        else:
+            flash(f'Failed to cancel execution {executionId}', 'error')
+    except Exception as e:
+        flash(f'Error cancelling execution: {e}', 'error')
+
+    return redirect(url_for('execution.execution', executionId=executionId))
