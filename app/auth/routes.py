@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from app import db
 from app.models import User
 from app.auth import bp
-from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm
+from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm, UpdateProfileForm
 from Helper import Config, Log
 from app.email import send_email
 from itsdangerous import URLSafeTimedSerializer
@@ -265,10 +265,12 @@ def reset_password_request():
 
     return render_template(
         'auth/reset_password_request.html',
-        form=form,
         favicon=branding.FavIcon,
+        logo=branding.Logo,
         platformName=branding.Platform,
-        header=branding.Header
+        header=branding.Header,
+        form=form,
+        description=branding.Description
     )
 
 # ==========================
@@ -296,8 +298,62 @@ def reset_password(token):
 
     return render_template(
         'auth/reset_password.html',
+        favicon=branding.FavIcon,
+        logo=branding.Logo,
+        platformName=branding.Platform,
+        header=branding.Header,
         form=form,
+        description=branding.Description
+    )
+
+@bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    form = UpdateProfileForm()
+    updated = False
+
+    if form.validate_on_submit():
+        if not current_user.checkPassword(form.current_password.data):
+            flash('Incorrect current password. Changes were not saved.', 'danger')
+        else:
+            if form.email.data and form.email.data != current_user.email:
+                current_user.email = form.email.data
+                updated = True
+            
+            if form.password.data:
+                current_user.setPassword(form.password.data)
+                updated = True
+
+            if updated:
+                db.session.commit()
+                flash('Your profile has been updated. Please log in again.', 'warning')
+                logout_user()  
+                return redirect(url_for('auth.login'))  
+            else:
+                flash('No changes were made.', 'info')
+
+    form.email.data = current_user.email
+    return render_template(
+        'auth/profile.html', 
+        form=form, 
         favicon=branding.FavIcon,
         platformName=branding.Platform, 
-        header=branding.Header
-    )
+        header=branding.Header)
+
+@bp.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+
+    if current_user.is_admin:
+        flash("Admin accounts cannot be deleted!", "danger")
+        return redirect(url_for('auth.profile'))
+
+    user = User.query.get(current_user.id)  
+
+    logout_user()  
+
+    db.session.delete(user)  
+    db.session.commit()
+
+    flash('Your account has been deleted permanently.', 'danger')
+    return redirect(url_for('main.index'))

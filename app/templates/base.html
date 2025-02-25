@@ -69,6 +69,7 @@
                 <ul class="nav navbar-nav">
                     <li><a class="navbar-item" id="navbar-home" href="{{ url_for('main.index') }}">Home</a></li>
                     <li><a class="navbar-item" id="navbar-createExperiment" href="{{ url_for('experiment.create') }}">Create Experiment</a></li>
+                    <li><a href="{{ url_for('auth.profile') }}">My Profile</a></li>
                     {% if ewEnabled %}
                         <li><a class="navbar-item" id="navbar-createDistExperiment" href="{{ url_for('experiment.createDist') }}">Create Distributed Experiment</a></li>
                     {% endif %}

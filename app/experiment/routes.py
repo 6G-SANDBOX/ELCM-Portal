@@ -10,6 +10,7 @@ from app.models import Experiment, Execution, Action
 from app.experiment.forms import ExperimentForm, RunExperimentForm, DistributedStep1Form, DistributedStep2Form
 from app.execution.routes import getLastExecution
 from Helper import Config, Log, Facility
+from datetime import datetime, timedelta
 
 config = Config()
 branding = config.Branding
@@ -307,3 +308,61 @@ def kickstart(experimentId: int):
         return f'Hush now! Exp {experimentId} - Exec {jsonResponse["ExecutionId"]}'
     except Exception as e:
         return str(e)
+        
+@bp.route('/delete/<int:experiment_id>', methods=['POST'])
+@login_required
+def delete_experiment(experiment_id):
+    """Delete an experiment if any execution is not found or if all executions have finished."""
+    
+    experiment = Experiment.query.get_or_404(experiment_id)
+
+    # Check if the current user has permission to delete the experiment
+    if experiment.user_id != current_user.id:
+        flash("You do not have permission to delete this experiment.", "danger")
+        return redirect(url_for('main.index'))
+
+    # Retrieve all executions related to the experiment
+    executions = experiment.experimentExecutions() or []
+
+    execution_not_found = False  # Flag to track missing executions
+
+    # Check execution status via API
+    for exec in executions:
+        try:
+            localResponse: Dict = ElcmApi().GetLogs(exec.id)
+            status = localResponse.get("Status", "Unknown")
+
+            Log.D(f'Execution {exec.id} status response: {status}')
+
+            # If the execution is "Not Found", mark it for deletion
+            if status == 'Not Found':
+                execution_not_found = True
+                break  # No need to check further, we already know we need to delete
+        except Exception as e:
+            Log.E(f'Error accessing execution {exec.id}: {e}')
+            flash(f'Exception while trying to connect with dispatcher: {e}', 'error')
+            return redirect(url_for('main.index'))
+
+    # If any execution is not found, delete the experiment
+    if execution_not_found:
+        Log.I(f"Experiment {experiment_id} deleted because at least one execution was not found via API.")
+        db.session.delete(experiment)
+        db.session.commit()
+        flash("Experiment deleted because at least one execution was not found.", "success")
+        return redirect(url_for('main.index'))
+
+    # Identify active executions (those that are not finished, successful, or errored)
+    active_executions = [exec for exec in executions if exec.status not in ["Finished", "Success", "Error"]]
+
+    # If all executions have finished, delete the experiment
+    if not active_executions:
+        Log.I(f"Experiment {experiment_id} deleted because all executions have finished.")
+        db.session.delete(experiment)
+        db.session.commit()
+        flash("Experiment deleted because all executions have finished.", "success")
+        return redirect(url_for('main.index'))
+
+    # If there are active executions, prevent deletion
+    Log.I(f"Experiment {experiment_id} cannot be deleted because it has active executions.")
+    flash("The experiment cannot be deleted because it has active executions running.", "warning")
+    return redirect(url_for('main.index'))

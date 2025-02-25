@@ -66,5 +66,10 @@
             <a class="btn btn-blue btn-sm" href="/experiment/{{ experiment.id }}" role="button">History</a>
             <a class="btn btn-blue btn-sm" href="{{ url_for('experiment.descriptor', experimentId=experiment.id) }}" role="button">Descriptor</a>
         </form>
+
+        <form action="{{ url_for('experiment.delete_experiment', experiment_id=experiment.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this experiment?');">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+        
     </td>
 </tr>
