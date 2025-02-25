@@ -31,8 +31,8 @@ def create_app(config_class=Config):
         MAIL_PORT=email_api.Port,
         MAIL_USERNAME=email_api.User,
         MAIL_PASSWORD=email_api.Password,
-        MAIL_USE_TLS=True,
-        MAIL_USE_SSL=False
+        MAIL_USE_TLS=email_api.TLS,
+        MAIL_USE_SSL=email_api.SSL
     )
 
     db.init_app(app)

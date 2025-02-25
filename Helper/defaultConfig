@@ -25,3 +25,5 @@ EmailApi:
   Password: "password"
   Port: 587
   Server: "server"
+  TLS: True
+  SSL: False

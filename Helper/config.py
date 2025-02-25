@@ -143,11 +143,17 @@ class EmailApi:
 
     @property
     def Port(self):
-        return self.data.get('Port', '')
+        return self.data.get('Port', 587)
 
     @property
     def Server(self):
         return self.data.get('Server', '')
+    @property
+    def TLS(self):
+        return self.data.get('TLS', True)
+    @property
+    def SSL(self):
+        return self.data.get('SSL', False)
 
 
 class Config:
