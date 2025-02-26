@@ -1,8 +1,8 @@
-"""Added is_admin and is_approved fields
+"""Add is_admin and is_approved fields
 
-Revision ID: b178d4525af3
+Revision ID: 3499ae5b9a77
 Revises: 0717943aa0a5
-Create Date: 2025-02-19 00:17:41.873869
+Create Date: 2025-02-26 14:04:42.853267
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b178d4525af3'
+revision = '3499ae5b9a77'
 down_revision = '0717943aa0a5'
 branch_labels = None
 depends_on = None
