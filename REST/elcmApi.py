@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 from app.models import Experiment
 from .restClient import RestClient
 from Helper import Config
-
+import requests
 
 class ElcmApi(RestClient):
     def __init__(self):
@@ -53,3 +53,22 @@ class ElcmApi(RestClient):
         url = f'{self.api_url}/execution/{executionId}/cancel'
         response = self.HttpGet(url)
         return RestClient.ResponseToJson(response)
+    
+    def delete_test_case(self, test_case_name: str) -> Dict:
+        url = f'{self.api_url}/facility/testcases/delete'
+        payload = {"test_case_name": test_case_name}
+        
+        try:
+            response = self.HttpPost(url, {'Content-Type': 'application/json'}, json.dumps(payload))
+            return RestClient.ResponseToJson(response)
+        except Exception as e:
+            return {"error": f"Failed to delete test case: {str(e)}"}
+        
+    def upload_test_case(self, file):
+        url = f"{self.api_url}/facility/upload_test_case"
+        files = {'test_case': (file.filename, file.stream, file.content_type)}
+        try:
+            response = requests.post(url, files=files)
+            return response.json()
+        except Exception as e:
+            return {"success": False, "message": f"Error sending test case: {str(e)}"}

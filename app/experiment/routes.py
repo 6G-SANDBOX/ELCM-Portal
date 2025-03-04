@@ -366,3 +366,52 @@ def delete_experiment(experiment_id):
     Log.I(f"Experiment {experiment_id} cannot be deleted because it has active executions.")
     flash("The experiment cannot be deleted because it has active executions running.", "warning")
     return redirect(url_for('main.index'))
+
+@bp.route('/delete_test_case', methods=['POST'])
+@login_required
+def delete_test_case():
+    test_case_name = request.json.get('test_case_name')
+
+    if not test_case_name:
+        return jsonify({"success": False, "message": "No test case name provided"}), 400
+
+    try:
+        response = ElcmApi().delete_test_case(test_case_name)
+
+        if "error" in response:
+            return jsonify({"success": False, "message": response["error"]}), 500
+
+        if response.get("success", False):
+            Facility.Reload()
+            return jsonify({
+                "success": True,
+                "message": f"Test case {test_case_name} deleted via ELCM API"
+            })
+        else:
+            return jsonify({"success": False, "message": f"Failed to delete test case: {response}"}), 400
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Exception: {str(e)}"}), 500
+
+@bp.route('/upload_test_case', methods=['POST'])
+@login_required
+def upload_test_case():
+    file = request.files.get('test_case')
+
+    if not file:
+        return jsonify({"success": False, "message": "No file received"}), 400
+
+    if not file.filename.lower().endswith('.yml'):
+        return jsonify({"success": False, "message": "Invalid file extension. Only .yml allowed."}), 400
+
+    try:
+        response = ElcmApi().upload_test_case(file)
+
+        if response.get("success", False):
+            Facility.Reload()
+            return jsonify({"success": True, "message": f"Test case {file.filename} uploaded via ELCM API"})
+        else:
+            return jsonify({"success": False, "message": f"Failed to upload test case: {response}"}), 400
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Exception: {str(e)}"}), 500

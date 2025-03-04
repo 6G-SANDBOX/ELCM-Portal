@@ -3,39 +3,117 @@
 {% import 'experiment/create_base.html' as base %}
 
 {% block styles %}
-{{ super() }}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/browseFiles.css') }}">
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/browseFiles.css') }}">
+    <style>
+        .btn {
+            margin-top: 15px;
+        }
+    </style>
 {% endblock %}
 
 {% block scripts %}
     {{ super() }}
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script src="{{url_for('static', filename='js/createExperiment.js')}}"></script>
-    <script src="{{url_for('static', filename='js/browseFiles.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/createExperiment.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/browseFiles.js') }}"></script>
     <script>setTab('navbar-createExperiment')</script>
     <script>
-        // Force a change of div so that only one group of settings is visible, and hide parameters
-        $(document).ready( function () {
+        $(document).ready(function () {
             changeSettingsDiv();
-            changeSliceSettingsDiv(document.getElementById("enableSlicing"))
+            changeSliceSettingsDiv(document.getElementById("enableSlicing"));
             displayParameters();
-        } );
+        });
 
-        // Build the list of NSs before binding the function to the counter
-        $("#nsCount").bind('change', function() {
-            nss = []; nsIds = [];
-            {% for ns in nss%}
-              nss.push("{{ ns[0] }}");
-              nsIds.push("{{ ns[1] }}");
-            {% endfor %}
-            changeNsRows(nss, nsIds);
-          });
+        function removeTestCase(testCaseName) {
+            if (!confirm(`Are you sure you want to delete test case "${testCaseName}"?`)) {
+                return;
+            }
+
+            fetch('/experiment/delete_test_case', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ test_case_name: testCaseName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Server Response:", data);
+
+                if (data.success) {
+                    alert(`Test case "${testCaseName}" deleted successfully.`);
+                    location.reload();
+                } else {
+                    alert("Error deleting test case: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Failed to connect to the server.");
+            });
+        }
+
+        function uploadTestCase() {
+            let fileInput = document.getElementById("testCaseFile");
+            let file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a test case file to upload.");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("test_case", file);
+
+            fetch('/experiment/upload_test_case', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Server Response:", data);
+
+                if (data.success) {
+                    alert(`Test case "${file.name}" uploaded successfully.`);
+                    location.reload();
+                } else {
+                    alert("Error uploading test case: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Failed to connect to the server.");
+            });
+        }
     </script>
 {% endblock %}
 
 {% macro standardSettings() %}
     <div class="col-sm-12 settingsDiv nopadding" id="StandardSettings" style="margin-bottom: 20px">
-        {{ base.testCasesField('Standard', standardTestCases, testCaseNamesPerParameter) }}
+        <h4>Test Cases</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Test Case</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="testCasesList">
+                {% for testCase in standardTestCases %}
+                    <tr id="testCaseRow_{{ testCase }}">
+                        <td><input type="checkbox" name="Standard_testCases" value="{{ testCase }}"></td>
+                        <td>{{ testCase }}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm"
+                                    onclick="removeTestCase('{{ testCase }}')">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         {{ base.uesField('Standard', ues) }}
     </div>
 {% endmacro %}
@@ -44,17 +122,18 @@
     <div class="col-sm-12 settingsDiv nopadding" id="CustomSettings" style="margin-bottom: 20px">
         <div class="col-sm-4">
             <label>
-                <input type="checkbox" class="custom-control-input" id="automateCheckbox" name="automate" value="automate"
+                <input type="checkbox" class="custom-control-input" id="automateCheckbox"
+                       name="automate" value="automate"
                        onclick="disableAutomatedSettings();" checked>
-                    Automate experiment
+                Automate experiment
             </label>
         </div>
         <div class="col-sm-5 text-right">
             <label for="reservationCustom">Reservation time (minutes)</label>
         </div>
         <div class="col-sm-3">
-             <input type="number" id="reservationCustom" name="reservationCustom" class="InputBox form-control"
-                    min="5" value="30" disabled>
+             <input type="number" id="reservationCustom" name="reservationCustom"
+                    class="InputBox form-control" min="5" value="30" disabled>
         </div>
 
         <div class="col-sm-12 nopadding" id="CustomAutomatedSettings">
@@ -72,8 +151,9 @@
                 {% set type = info['Type'] %}
                 {% set description = info['Description'] %}
                 {% set testCases = testCaseNamesPerParameter[parameter] %}
-                <div class="col-sm-12 nopadding parameter_row" id="{{ parameter }}_row"
-                    style="margin-bottom: 0.5em; margin-top: 0.5em">
+                <div class="col-sm-12 nopadding parameter_row"
+                     id="{{ parameter }}_row"
+                     style="margin-bottom: 0.5em; margin-top: 0.5em">
                     <div class="col-sm-2">
                         <label for="{{ parameter }}_textField">
                             <b>{{ parameter }}</b>
@@ -81,13 +161,14 @@
                     </div>
                     <div class="col-sm-3">
                         <input type="text" class="InputBox form-control"
-                            id="{{ parameter }}_ParameterTextField" name="{{ parameter }}_ParameterTextField">
+                               id="{{ parameter }}_ParameterTextField"
+                               name="{{ parameter }}_ParameterTextField">
                     </div>
                     <div class="col-sm-4">({{ type }}) {{ description }}</div>
                     <div class="col-sm-3">
-                            {% for testCase in testCases | sort %}
-                                <span class="badge test_case_badge {{ testCase }}_badge">{{ testCase }}</span>
-                            {% endfor %}
+                        {% for testCase in testCases | sort %}
+                            <span class="badge test_case_badge {{ testCase }}_badge">{{ testCase }}</span>
+                        {% endfor %}
                     </div>
                 </div>
             {% endfor %}
@@ -104,7 +185,8 @@
             <label for="reservationMonroe">Reservation time (minutes)</label>
         </div>
         <div class="col-sm-3">
-             <input type="number" id="reservationMonroe" name="reservationMonroe" class="InputBox form-control" min="1" value="30">
+             <input type="number" id="reservationMonroe" name="reservationMonroe"
+                    class="InputBox form-control" min="1" value="30">
         </div>
 
         <div class="col-sm-12">
@@ -113,9 +195,10 @@
         </div>
         <div class="col-sm-12">
             <h4><label for="monroeParameters">Parameters</label></h4>
-            <textarea form="form" class="form-control" name="monroeParameters" id="monroeParameters"></textarea>
+            <textarea form="form" class="form-control" name="monroeParameters"
+                      id="monroeParameters"></textarea>
         </div>
-    {# TODO: Autograph, but with parameters on the portal #}
+        {# TODO: Autograph, but with parameters on the portal #}
     </div>
 {% endmacro %}
 
@@ -130,14 +213,15 @@
 
         <div class="col-sm-12 nopadding">
             <div class="col-sm-8">
-                <h4><label for="expNname">Name</label></h4>
+                <h4><label for="expName">Name</label></h4>
                 <input class="form-control" type="text" name="name" id="expName"/>
             </div>
             <div class="col-sm-4">
                 <h4><label for="expType">Type</label></h4>
                 <select class="form-control" name="type" id="expType" onchange="changeSettingsDiv()">
                     {% for type in experimentTypes %}
-                        <option value="{{ type }}" {{ "selected" if loop.first else "" }}>
+                        <option value="{{ type }}"
+                                {{ "selected" if loop.first else "" }}>
                             {{ type }}
                         </option>
                     {% endfor %}
@@ -148,7 +232,8 @@
         <div class="col-sm-12" style="margin-bottom: 25px">
             <div class="custom-control custom-checkbox">
                 <label>
-                    <input type="checkbox" class="custom-control-input" name="exclusive" value="exclusive">
+                    <input type="checkbox" class="custom-control-input"
+                           name="exclusive" value="exclusive">
                     Avoid running other experiments at the same time
                 </label>
             </div>
@@ -158,13 +243,16 @@
         {{ customSettings() }}
         {{ monroeSettings() }}
 
-        <div class="col-sm-12">{{ base.dropdownList("scenario", "Scenario", scenarios, True) }}</div>
+        <div class="col-sm-12">
+            {{ base.dropdownList("scenario", "Scenario", scenarios, True) }}
+        </div>
 
         <br>
-        <button type="submit" id="checkBtn" name="submit" class="btn btn-darkBlue">
-            Add Experiment
-        </button>
+        <button type="submit" class="btn btn-darkBlue">Add Experiment</button>
+
+        <h4>Upload Test Case</h4>
+        <input type="file" id="testCaseFile" name="test_case" class="form-control">
+        <button type="button" class="btn btn-primary" onclick="uploadTestCase()">Upload</button>
     </form>
 </div>
-<div class="col-sm-2"></div>
 {% endblock %}

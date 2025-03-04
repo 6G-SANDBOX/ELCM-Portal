@@ -9,19 +9,49 @@
     {{ moment.include_moment() }}
     <script src="{{ url_for('static', filename='js/nanobar.min.js') }}"></script>
     <script>
+        
         window.setTimeout(function() {
             $(".alert_message").fadeTo(500, 0).slideUp(500, function(){ $(this).remove(); });
         }, 20000);
-    </script>
-    <script>
-        function setTab(tabName){
-            tabs = document.querySelectorAll(".navbar-item");
-            for (var i=0; i<tabs.length; i++) {
-                tab = tabs[i];
+
+        function setTab() {
+        let currentPath = window.location.pathname;
+        let tabs = document.querySelectorAll(".navbar-item");
+
+        tabs.forEach(tab => {
+            let tabPath = new URL(tab.href, window.location.origin).pathname;
+
+            if (tabPath === currentPath) {
+                tab.classList.add("menuSelected");
+            } else {
                 tab.classList.remove("menuSelected");
             }
-            document.getElementById(tabName).classList.add("menuSelected");
+        });
         }
+
+        document.addEventListener("DOMContentLoaded", setTab);
+
+        document.addEventListener("DOMContentLoaded", function() {
+            let theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        });
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if (document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.removeItem('theme');
+            }
+        }
+    </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.documentElement.classList.add("js-enabled");
+    });
     </script>
 {% endblock %}
 
@@ -52,9 +82,11 @@
             {% else %}
                 {% set url = 'main.index' %}
             {% endif %}
-            <a href="{{ url_for(url) }}"><img
-                    src="{{ url_for('static', filename='branding/' + header) }}" alt="{{ platformName }}" height="48"
-                    width="48" style="float: left; padding: 5px"></a>
+            <a href="{{ url_for(url) }}">
+                <img src="{{ url_for('static', filename='branding/' + header) }}"
+                     alt="{{ platformName }}"
+                     height="50" width="auto" style="float: left; padding: 5px">
+            </a>
             <a class="navbar-brand" href="{{ url_for(url) }}">{{ platformName }}</a>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -69,7 +101,7 @@
                 <ul class="nav navbar-nav">
                     <li><a class="navbar-item" id="navbar-home" href="{{ url_for('main.index') }}">Home</a></li>
                     <li><a class="navbar-item" id="navbar-createExperiment" href="{{ url_for('experiment.create') }}">Create Experiment</a></li>
-                    <li><a href="{{ url_for('auth.profile') }}">My Profile</a></li>
+                    <li><a class="navbar-item" id="navbar-profile" href="{{ url_for('auth.profile') }}">My Profile</a></li>
                     {% if ewEnabled %}
                         <li><a class="navbar-item" id="navbar-createDistExperiment" href="{{ url_for('experiment.createDist') }}">Create Distributed Experiment</a></li>
                     {% endif %}
@@ -79,9 +111,17 @@
                     {% endif %}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
-                    <li><a href="{{ url_for('auth.logout') }}">{{ current_user.username }} - Logout</a></li>
+                    <li><a class="navbar-item" id="navbar-logout" href="{{ url_for('auth.logout') }}">{{ current_user.username }} - Logout</a></li>
                 </ul>
             {% endif %}
+
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" onclick="toggleTheme()" style="font-weight: bold;">
+                        Toggle Theme
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
 </nav>
@@ -92,14 +132,13 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert {{ 'alert-danger' if category == 'error' else 'alert-info' }} alert_message" role="alert">
+                <div class="alert {{ 'alert-danger' if category == 'error' else 'alert-info' }} alert_message"
+                     role="alert">
                     {{ message }}
                 </div>
             {% endfor %}
         {% endif %}
     {% endwith %}
-
-    {# application content needs to be provided in the app_content block #}
     {% block app_content %}{% endblock %}
 </div>
 {% endblock %}
