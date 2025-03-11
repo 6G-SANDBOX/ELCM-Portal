@@ -371,12 +371,13 @@ def delete_experiment(experiment_id):
 @login_required
 def delete_test_case():
     test_case_name = request.json.get('test_case_name')
+    file_type = request.json.get('file_type', 'testcase')
 
     if not test_case_name:
         return jsonify({"success": False, "message": "No test case name provided"}), 400
 
     try:
-        response = ElcmApi().delete_test_case(test_case_name)
+        response = ElcmApi().delete_test_case(test_case_name, file_type)
 
         if "error" in response:
             return jsonify({"success": False, "message": response["error"]}), 500
@@ -385,18 +386,20 @@ def delete_test_case():
             Facility.Reload()
             return jsonify({
                 "success": True,
-                "message": f"Test case {test_case_name} deleted via ELCM API"
+                "message": f"{file_type} {test_case_name} deleted via ELCM API"
             })
         else:
-            return jsonify({"success": False, "message": f"Failed to delete test case: {response}"}), 400
+            return jsonify({"success": False, "message": f"Failed to delete {file_type}: {response}"}), 400
 
     except Exception as e:
         return jsonify({"success": False, "message": f"Exception: {str(e)}"}), 500
+
 
 @bp.route('/upload_test_case', methods=['POST'])
 @login_required
 def upload_test_case():
     file = request.files.get('test_case')
+    file_type = request.form.get('file_type', 'testcase')
 
     if not file:
         return jsonify({"success": False, "message": "No file received"}), 400
@@ -405,11 +408,11 @@ def upload_test_case():
         return jsonify({"success": False, "message": "Invalid file extension. Only .yml allowed."}), 400
 
     try:
-        response = ElcmApi().upload_test_case(file)
+        response = ElcmApi().upload_test_case(file,file_type)
 
         if response.get("success", False):
             Facility.Reload()
-            return jsonify({"success": True, "message": f"Test case {file.filename} uploaded via ELCM API"})
+            return jsonify({"success": True, "message": f"Test case {file.filename} uploaded via ELCM API. Type: {file_type}"})
         else:
             return jsonify({"success": False, "message": f"Failed to upload test case: {response}"}), 400
 

@@ -120,11 +120,9 @@ update{{ execution.id }}(nanobar);
 
             {% if execution.status in ['PreRun', 'Run', 'PostRun'] %}
             <a href="{{ url_for('execution.cancel_execution', executionId=execution.id) }}" 
-               class="btn btn-danger"
+               class="btn btn-danger btn-sm"
                id="cancel-button"
-               onclick="return confirmCancel('{{ execution.id }}');">
-               ❌ Cancel Execution
-            </a>
+               onclick="return confirmCancel('{{ execution.id }}');">❌</a>
 
             <script>
                 function confirmCancel(executionId) {

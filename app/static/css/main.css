@@ -220,7 +220,7 @@ label {
 }
 
 .btn-danger{
-    margin-top: 5px;
+    margin: 0 !important;
 }
 
 /* 🔹 Cards */

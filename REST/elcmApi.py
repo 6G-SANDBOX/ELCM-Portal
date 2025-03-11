@@ -54,9 +54,9 @@ class ElcmApi(RestClient):
         response = self.HttpGet(url)
         return RestClient.ResponseToJson(response)
     
-    def delete_test_case(self, test_case_name: str) -> Dict:
+    def delete_test_case(self, test_case_name: str, file_type: str = "testcase") -> Dict:
         url = f'{self.api_url}/facility/testcases/delete'
-        payload = {"test_case_name": test_case_name}
+        payload = {"test_case_name": test_case_name, "file_type": file_type}
         
         try:
             response = self.HttpPost(url, {'Content-Type': 'application/json'}, json.dumps(payload))
@@ -64,11 +64,12 @@ class ElcmApi(RestClient):
         except Exception as e:
             return {"error": f"Failed to delete test case: {str(e)}"}
         
-    def upload_test_case(self, file):
+    def upload_test_case(self, file, file_type: str = "testcase"):
         url = f"{self.api_url}/facility/upload_test_case"
         files = {'test_case': (file.filename, file.stream, file.content_type)}
+        data = {'file_type': file_type}
         try:
-            response = requests.post(url, files=files)
+            response = requests.post(url, files=files, data=data)
             return response.json()
         except Exception as e:
             return {"success": False, "message": f"Error sending test case: {str(e)}"}
