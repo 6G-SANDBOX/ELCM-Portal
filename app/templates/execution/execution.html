@@ -23,6 +23,7 @@
                       $("#table_status{{ execution.id }}").addClass("label-success");
                       $("#table_status{{ execution.id }}").removeClass("label-primary");
                       $("#progress{{ execution.id }}").fadeTo(500, 0).slideUp(500, function(){ $(this).remove(); });
+                      location.reload();
                   } else {
                     if (response['Status'] === 'Run' && response['PerCent'] === 100) {
                         $("#cancel-button").hide();}
