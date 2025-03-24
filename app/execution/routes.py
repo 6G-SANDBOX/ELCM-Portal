@@ -84,12 +84,28 @@ def getLastExecution() -> int:
 @login_required
 def cancel_execution(executionId: int):
     try:
+        execution: Execution = Execution.query.get(executionId)
+        if not execution:
+            Log.W(f'Execution {executionId} not found.')
+            flash(f'Execution {executionId} not found.', 'warning')
+            return redirect(url_for('execution.execution', executionId=executionId))
+
+        Log.D(f'Attempting to cancel execution {executionId}, current status: {execution.status}')
+
+        if execution.status == 'Finished':
+            Log.W(f'Execution {executionId} is already finished, cannot cancel.')
+            flash(f'Cannot cancel execution {executionId} because it is already finished.', 'warning')
+            return redirect(url_for('execution.execution', executionId=executionId))
+
         response = ElcmApi().CancelExecution(executionId)
         if response:
+            Log.I(f'Execution {executionId} cancelled successfully.')
             flash(f'Execution {executionId} cancelled successfully', 'success')
         else:
+            Log.E(f'Failed to cancel execution {executionId}.')
             flash(f'Failed to cancel execution {executionId}', 'error')
     except Exception as e:
-        flash(f'Error cancelling execution: {e}', 'error')
+        Log.E(f'Unexpected error while cancelling execution {executionId}: {e}')
+        flash(f'Unexpected error cancelling execution: {e}', 'error')
 
     return redirect(url_for('execution.execution', executionId=executionId))
