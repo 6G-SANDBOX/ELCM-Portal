@@ -18,6 +18,10 @@
         let currentPath = window.location.pathname;
         let tabs = document.querySelectorAll(".navbar-item");
 
+        if (currentPath === '/') {
+        currentPath = '/index';
+        }
+
         tabs.forEach(tab => {
             let tabPath = new URL(tab.href, window.location.origin).pathname;
 
