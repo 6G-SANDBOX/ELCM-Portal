@@ -1,5 +1,5 @@
 from typing import List
-from flask import render_template, redirect, request
+from flask import render_template, redirect, request, url_for, flash
 from flask_login import current_user, login_required
 from app.main import bp
 from app.models import User, Experiment, Action
@@ -28,10 +28,17 @@ def index():
                            actions=actions, ewEnabled=Config().EastWest.Enabled)
 
 
-@bp.route('/info')
+@bp.route('/info', methods=['GET', 'POST'])
 def info():
+    if request.method == 'POST':
+        new_html = request.form.get('content')
+        with open(branding.DescriptionPage, 'w', encoding='utf8') as page:
+            page.write(new_html)
+        flash("Content saved successfully.")
+        return redirect(url_for('main.info'))
+
     with open(branding.DescriptionPage, 'r', encoding='utf8') as page:
-        html = ''.join(page.readlines())
+        html = page.read()
 
     return render_template('info.html', title="Testbed Info", favicon=branding.FavIcon,
                            platformName=branding.Platform, header=branding.Header, html=html,
