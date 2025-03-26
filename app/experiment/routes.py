@@ -312,7 +312,6 @@ def kickstart(experimentId: int):
 @bp.route('/delete/<int:experiment_id>', methods=['POST'])
 @login_required
 def delete_experiment(experiment_id):
-    """Delete an experiment if any execution is not found or if all executions have finished or are cancelled."""
     
     experiment = Experiment.query.get_or_404(experiment_id)
 
@@ -323,48 +322,29 @@ def delete_experiment(experiment_id):
 
     # Retrieve all executions related to the experiment
     executions = experiment.experimentExecutions() or []
-
-    execution_not_found = False  # Flag to track missing executions
-
-    # Check execution status via API
-    for exec in executions:
+    
+    # Instantiate the API client
+    api = ElcmApi()
+    
+    # Cancel each execution using the cancel endpoint
+    for exe in executions:
         try:
-            localResponse: Dict = ElcmApi().GetLogs(exec.id)
-            status = localResponse.get("Status", "Unknown")
-
-            Log.D(f'Execution {exec.id} status response: {status}')
-
-            # If the execution is "Not Found", mark it for deletion
-            if status == 'Not Found':
-                execution_not_found = True
-                break  # No need to check further, we already know we need to delete
+            url = f'{api.api_url}/execution/{exe.id}/cancel'
+            response = api.HttpGet(url)
+            if response.status != 200:
+                Log.W(f"Cancellation for execution {exe.id} did not return status 200 (got {response.status}).")
+                flash(f"Error canceling execution {exe.id}. Please try again.", "warning")
+                return redirect(url_for('main.index'))
         except Exception as e:
-            Log.E(f'Error accessing execution {exec.id}: {e}')
-            flash(f'Exception while trying to connect with dispatcher: {e}', 'error')
+            Log.E(f"Error canceling execution {exe.id}: {e}")
+            flash(f"Error canceling execution {exe.id}: {e}", "error")
             return redirect(url_for('main.index'))
 
-    # If any execution is not found, delete the experiment
-    if execution_not_found:
-        Log.I(f"Experiment {experiment_id} deleted because at least one execution was not found via API.")
-        db.session.delete(experiment)
-        db.session.commit()
-        flash("Experiment deleted because at least one execution was not found.", "success")
-        return redirect(url_for('main.index'))
+    Execution.query.filter_by(experiment_id=experiment_id).delete()
 
-    # Identify active executions (those that are not finished, successful, errored, or cancelled)
-    active_executions = [exec for exec in executions if exec.status not in ["Finished", "Success", "Error", "Cancelled"]]
-
-    # If all executions have finished or are cancelled, delete the experiment
-    if not active_executions:
-        Log.I(f"Experiment {experiment_id} deleted because all executions have finished or are cancelled.")
-        db.session.delete(experiment)
-        db.session.commit()
-        flash("Experiment deleted because all executions have finished or are cancelled.", "success")
-        return redirect(url_for('main.index'))
-
-    # If there are active executions, prevent deletion
-    Log.I(f"Experiment {experiment_id} cannot be deleted because it has active executions.")
-    flash("The experiment cannot be deleted because it has active executions running.", "warning")
+    db.session.delete(experiment)
+    db.session.commit()
+    flash("Experiment and its executions have been cancelled and deleted.", "success")
     return redirect(url_for('main.index'))
 
 @bp.route('/delete_test_case', methods=['POST'])
