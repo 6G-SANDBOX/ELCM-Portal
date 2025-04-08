@@ -399,31 +399,6 @@ def upload_test_case():
 
     except Exception as e:
         return jsonify({"success": False, "message": f"Exception: {str(e)}"}), 500
-    
-def safe_prettify(text: str) -> str:
-    placeholders = {}
-    
-    def protect(match):
-        token = f"__PLACEHOLDER_{len(placeholders)}__"
-        placeholders[token] = match.group(0)
-        return token
-
-    text = re.sub(r"(['\"])(?:(?=(\\?))\2.)*?\1", protect, text)
-    text = re.sub(r'@{[^}]+}', protect, text)
-
-    text = re.sub(r'\b(Flow\.\w+|Run\.\w+|Config:|Children:)', r'\n\1', text)
-    text = re.sub(r'\[', '[\n  ', text)
-    text = re.sub(r';\s*', ';\n  ', text)
-    text = re.sub(r'\{', '{\n    ', text)
-    text = re.sub(r'\}', '\n}', text)
-    text = re.sub(r',\s*', ',\n    ', text)
-    text = re.sub(r'\n\s*\n', '\n', text).strip()
-
-    for token, original in placeholders.items():
-        text = text.replace(token, original)
-
-    return text
-
 
 @bp.route('/<experimentId>/test_cases', methods=['GET'])
 @login_required
@@ -437,21 +412,28 @@ def test_cases(experimentId: int):
     ue_names = experiment.ues or []
 
     api = ElcmApi()
-    facility_data = api.GetTestCasesInfo()
+    facility_data = api.GetTestCasesInfo() or {}
 
     all_test_cases = facility_data.get("TestCases", {})
     all_ues = facility_data.get("UEs", {})
+    all_dashboards = facility_data.get("Dashboards", {})
 
     filtered_test_cases = {
-        name: [safe_prettify(line) for line in definitions]
+        name: definitions
         for name, definitions in all_test_cases.items()
         if name in test_case_names
     }
 
     filtered_ues = {
-        name: [safe_prettify(line) for line in definitions]
+        name: definitions
         for name, definitions in all_ues.items()
         if name in ue_names
+    }
+
+    filtered_dashboards = {
+        name: definitions
+        for name, definitions in all_dashboards.items()
+        if name in test_case_names
     }
 
     return render_template(
@@ -459,6 +441,7 @@ def test_cases(experimentId: int):
         experiment=experiment,
         filtered_test_cases=filtered_test_cases,
         filtered_ues=filtered_ues,
+        filtered_dashboards=filtered_dashboards,
         platformName=branding.Platform,
         header=branding.Header,
         favicon=branding.FavIcon

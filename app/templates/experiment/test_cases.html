@@ -39,5 +39,24 @@
   {% else %}
     <p class="text-muted">No UEs found for this experiment.</p>
   {% endif %}
+
+  <h2 class="mt-5">Dashboards</h2>
+
+  {% if filtered_dashboards %}
+    {% for name, definitions in filtered_dashboards.items() %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <strong>{{ name }}</strong>
+        </div>
+        <div class="card-body">
+          {% for line in definitions %}
+            <pre class="definition-box mb-2">{{ line }}</pre>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-muted">No dashboards found for this experiment.</p>
+  {% endif %}
 </div>
 {% endblock %}
