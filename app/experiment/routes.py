@@ -407,6 +407,10 @@ def test_cases(experimentId: int):
     if experiment is None:
         flash('Experiment not found', 'error')
         return redirect(url_for('main.index'))
+    
+    if experiment.user_id != current_user.id:
+        flash("Unauthorized access", "danger")
+        return redirect(url_for('main.index'))
 
     test_case_names = experiment.test_cases or []
     ue_names = experiment.ues or []
