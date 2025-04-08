@@ -11,6 +11,7 @@ from app.experiment.forms import ExperimentForm, RunExperimentForm, DistributedS
 from app.execution.routes import getLastExecution
 from Helper import Config, Log, Facility
 from datetime import datetime, timedelta
+import re
 
 config = Config()
 branding = config.Branding
@@ -398,6 +399,31 @@ def upload_test_case():
 
     except Exception as e:
         return jsonify({"success": False, "message": f"Exception: {str(e)}"}), 500
+    
+def safe_prettify(text: str) -> str:
+    placeholders = {}
+    
+    def protect(match):
+        token = f"__PLACEHOLDER_{len(placeholders)}__"
+        placeholders[token] = match.group(0)
+        return token
+
+    text = re.sub(r"(['\"])(?:(?=(\\?))\2.)*?\1", protect, text)
+    text = re.sub(r'@{[^}]+}', protect, text)
+
+    text = re.sub(r'\b(Flow\.\w+|Run\.\w+|Config:|Children:)', r'\n\1', text)
+    text = re.sub(r'\[', '[\n  ', text)
+    text = re.sub(r';\s*', ';\n  ', text)
+    text = re.sub(r'\{', '{\n    ', text)
+    text = re.sub(r'\}', '\n}', text)
+    text = re.sub(r',\s*', ',\n    ', text)
+    text = re.sub(r'\n\s*\n', '\n', text).strip()
+
+    for token, original in placeholders.items():
+        text = text.replace(token, original)
+
+    return text
+
 
 @bp.route('/<experimentId>/test_cases', methods=['GET'])
 @login_required
@@ -417,13 +443,13 @@ def test_cases(experimentId: int):
     all_ues = facility_data.get("UEs", {})
 
     filtered_test_cases = {
-        name: definitions
+        name: [safe_prettify(line) for line in definitions]
         for name, definitions in all_test_cases.items()
         if name in test_case_names
     }
 
     filtered_ues = {
-        name: definitions
+        name: [safe_prettify(line) for line in definitions]
         for name, definitions in all_ues.items()
         if name in ue_names
     }
