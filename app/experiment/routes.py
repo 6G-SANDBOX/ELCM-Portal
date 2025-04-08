@@ -416,36 +416,17 @@ def test_cases(experimentId: int):
     ue_names = experiment.ues or []
 
     api = ElcmApi()
-    facility_data = api.GetTestCasesInfo() or {}
-
-    all_test_cases = facility_data.get("TestCases", {})
-    all_ues = facility_data.get("UEs", {})
-    all_dashboards = facility_data.get("Dashboards", {})
-
-    filtered_test_cases = {
-        name: definitions
-        for name, definitions in all_test_cases.items()
-        if name in test_case_names
-    }
-
-    filtered_ues = {
-        name: definitions
-        for name, definitions in all_ues.items()
-        if name in ue_names
-    }
-
-    filtered_dashboards = {
-        name: definitions
-        for name, definitions in all_dashboards.items()
-        if name in test_case_names
-    }
+    facility_data = api.GetTestCasesInfo(
+        test_cases=test_case_names,
+        ues=ue_names
+    ) or {}
 
     return render_template(
         'experiment/test_cases.html',
         experiment=experiment,
-        filtered_test_cases=filtered_test_cases,
-        filtered_ues=filtered_ues,
-        filtered_dashboards=filtered_dashboards,
+        filtered_test_cases=facility_data.get("TestCases", {}),
+        filtered_ues=facility_data.get("UEs", {}),
+        filtered_dashboards=facility_data.get("Dashboards", {}),
         platformName=branding.Platform,
         header=branding.Header,
         favicon=branding.FavIcon
