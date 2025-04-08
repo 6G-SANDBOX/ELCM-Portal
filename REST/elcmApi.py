@@ -42,12 +42,14 @@ class ElcmApi(RestClient):
             return self.ResponseToJson(response)['TestCases']
         except: return None
 
-    def GetTestCasesInfo(self) -> Optional[List[Dict[str, object]]]:
+    def GetTestCasesInfo(self) -> Optional[Dict[str, Dict[str, List[str]]]]:
         url = f'{self.api_url}/facility/testcases/info'
         try:
             response = self.HttpGet(url)
-            return self.ResponseToJson(response)['TestCases']
-        except: return None
+            return self.ResponseToJson(response)
+        except:
+            return None
+
 
     def GetScenarios(self) -> List[str]:
         url = f'{self.api_url}/facility/scenarios'

@@ -408,9 +408,13 @@ def test_cases(experimentId: int):
         return redirect(url_for('main.index'))
 
     test_case_names = experiment.test_cases or []
+    ue_names = experiment.ues or []
 
     api = ElcmApi()
-    all_test_cases = api.GetTestCasesInfo()
+    facility_data = api.GetTestCasesInfo()
+
+    all_test_cases = facility_data.get("TestCases", {})
+    all_ues = facility_data.get("UEs", {})
 
     filtered_test_cases = {
         name: definitions
@@ -418,10 +422,17 @@ def test_cases(experimentId: int):
         if name in test_case_names
     }
 
+    filtered_ues = {
+        name: definitions
+        for name, definitions in all_ues.items()
+        if name in ue_names
+    }
+
     return render_template(
         'experiment/test_cases.html',
         experiment=experiment,
         filtered_test_cases=filtered_test_cases,
+        filtered_ues=filtered_ues,
         platformName=branding.Platform,
         header=branding.Header,
         favicon=branding.FavIcon
