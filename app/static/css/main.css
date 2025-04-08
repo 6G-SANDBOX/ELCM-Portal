@@ -298,3 +298,22 @@ html:not(.js-enabled) {
 .dark-theme li > a:hover {
     color: #bbbbbb !important;
 }
+
+.definition-box {
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-family: monospace;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+/* Estilo override si estás en modo oscuro */
+.dark-theme .definition-box {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border-color: #333;
+}

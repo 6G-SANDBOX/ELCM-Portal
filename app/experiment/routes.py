@@ -398,3 +398,31 @@ def upload_test_case():
 
     except Exception as e:
         return jsonify({"success": False, "message": f"Exception: {str(e)}"}), 500
+
+@bp.route('/<experimentId>/test_cases', methods=['GET'])
+@login_required
+def test_cases(experimentId: int):
+    experiment = Experiment.query.get(experimentId)
+    if experiment is None:
+        flash('Experiment not found', 'error')
+        return redirect(url_for('main.index'))
+
+    test_case_names = experiment.test_cases or []
+
+    api = ElcmApi()
+    all_test_cases = api.GetTestCasesInfo()
+
+    filtered_test_cases = {
+        name: definitions
+        for name, definitions in all_test_cases.items()
+        if name in test_case_names
+    }
+
+    return render_template(
+        'experiment/test_cases.html',
+        experiment=experiment,
+        filtered_test_cases=filtered_test_cases,
+        platformName=branding.Platform,
+        header=branding.Header,
+        favicon=branding.FavIcon
+    )

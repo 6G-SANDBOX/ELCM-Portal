@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h2>Test Cases for Experiment: <strong>{{ experiment.name }}</strong></h2>
+
+    {% if filtered_test_cases %}
+      {% for name, definitions in filtered_test_cases.items() %}
+        <div class="card mb-4">
+          <div class="card-header">
+            <strong>{{ name }}</strong>
+          </div>
+          <div class="card-body">
+            {% for line in definitions %}
+              <div class="definition-box mb-2">{{ line }}</div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-muted">No test cases found for this experiment.</p>
+    {% endif %}
+  </div>
+{% endblock %}

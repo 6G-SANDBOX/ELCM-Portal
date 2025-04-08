@@ -89,6 +89,11 @@
                Descriptor
             </a>
 
+            <a class="btn btn-blue btn-sm"
+                href="{{ url_for('experiment.test_cases', experimentId=experiment.id) }}" target="_blank" class="btn btn-secondary">
+                View Test Cases
+            </a>
+            
             <form action="{{ url_for('experiment.delete_experiment', experiment_id=experiment.id) }}"
                   method="post" novalidate
                   onsubmit="return confirm('Are you sure you want to delete this experiment?');"
