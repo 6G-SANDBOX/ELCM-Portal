@@ -89,10 +89,12 @@
                Descriptor
             </a>
 
+            {% if experiment.type != "MONROE" %}
             <a class="btn btn-blue btn-sm"
                 href="{{ url_for('experiment.test_cases', experimentId=experiment.id) }}" target="_blank" class="btn btn-secondary">
                 View Test Cases
             </a>
+            {% endif %}
             
             <form action="{{ url_for('experiment.delete_experiment', experiment_id=experiment.id) }}"
                   method="post" novalidate
