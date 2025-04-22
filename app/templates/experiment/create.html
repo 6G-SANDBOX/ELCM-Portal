@@ -191,7 +191,7 @@
                         <tr>
                             <th>File</th>
                             <th>Type</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -200,7 +200,15 @@
                             <td>{{ tc }}</td>
                             <td>Test Case</td>
                             <td>
-                                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestCase('{{ tc }}', 'testcase')">Delete</button>
+                                <a class="btn btn-blue btn-sm"
+                                   href="{{ url_for('experiment.edit_test_case') }}?test_case_name={{ tc }}&file_type=testcase">
+                                  Edit
+                                </a>
+                                <button type="button"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="removeTestCase('{{ tc }}', 'testcase')">
+                                  Delete
+                                </button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -209,7 +217,15 @@
                             <td>{{ ue }}</td>
                             <td>UEs</td>
                             <td>
-                                <button type="button" class="btn btn-danger btn-sm" onclick="removeTestCase('{{ ue }}', 'ues')">Delete</button>
+                                <a class="btn btn-blue btn-sm"
+                                   href="{{ url_for('experiment.edit_test_case') }}?test_case_name={{ ue }}&file_type=ues">
+                                  Edit
+                                </a>
+                                <button type="button"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="removeTestCase('{{ ue }}', 'ues')">
+                                  Delete
+                                </button>
                             </td>
                         </tr>
                         {% endfor %}

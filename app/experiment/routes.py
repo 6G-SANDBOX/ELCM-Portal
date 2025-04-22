@@ -11,7 +11,9 @@ from app.experiment.forms import ExperimentForm, RunExperimentForm, DistributedS
 from app.execution.routes import getLastExecution
 from Helper import Config, Log, Facility
 from datetime import datetime, timedelta
-import re
+import io, yaml
+from werkzeug.datastructures import FileStorage
+
 
 config = Config()
 branding = config.Branding
@@ -426,8 +428,65 @@ def test_cases(experimentId: int):
         experiment=experiment,
         filtered_test_cases=facility_data.get("TestCases", {}),
         filtered_ues=facility_data.get("UEs", {}),
-        filtered_dashboards=facility_data.get("Dashboards", {}),
         platformName=branding.Platform,
         header=branding.Header,
         favicon=branding.FavIcon
     )
+
+@bp.route('/edit_test_case', methods=['GET', 'POST'])
+@login_required
+def edit_test_case():
+    name      = request.args.get('test_case_name')
+    file_type = request.args.get('file_type', 'testcase')
+    elcm      = ElcmApi()
+
+    if request.method == 'GET':
+        info = elcm.GetTestCasesInfo(
+            test_cases=[name] if file_type=='testcase' else [],
+            ues       =[name] if file_type=='ues'      else []
+        )
+        bucket = info.get('TestCases' if file_type=='testcase' else 'UEs', {})
+        entries = bucket.get(name) or []
+        if not entries:
+            flash(f"No existe {file_type} '{name}' en ELCM.", 'warning')
+            return redirect(url_for('experiment.create'))
+        content = "\n---\n".join(entries)
+        return render_template(
+            'experiment/edit_test_case.html',
+            test_case_name=name,
+            file_type=file_type,
+            content=content,
+            platformName=branding.Platform,
+            header=branding.Header,
+            favicon=branding.FavIcon
+        )
+
+    new_yaml = request.form.get('yaml_content', '')
+    try:
+        yaml.safe_load(new_yaml)
+    except yaml.YAMLError as e:
+        flash(f"YAML inválido: {e}", 'danger')
+        return render_template(
+            'experiment/edit_test_case.html',
+            test_case_name=name,
+            file_type=file_type,
+            content=new_yaml,
+            platformName=branding.Platform,
+            header=branding.Header,
+            favicon=branding.FavIcon
+        )
+
+    bytes_io = io.BytesIO(new_yaml.encode('utf-8'))
+    file_storage = FileStorage(
+        stream=bytes_io,
+        filename=f"{name}.yml",
+        content_type="application/x-yaml"
+    )
+
+    resp = elcm.upload_test_case(file_storage, file_type)
+    if resp.get('success'):
+        flash(f"{file_type.capitalize()} '{name}' actualizado correctamente.", 'success')
+    else:
+        flash(f"Error al actualizar: {resp.get('message', resp)}", 'danger')
+
+    return redirect(url_for('experiment.create'))
