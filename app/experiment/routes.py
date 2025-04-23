@@ -436,20 +436,24 @@ def test_cases(experimentId: int):
 @bp.route('/edit_test_case', methods=['GET', 'POST'])
 @login_required
 def edit_test_case():
-    name      = request.args.get('test_case_name')
+    name = request.args.get('test_case_name')
     file_type = request.args.get('file_type', 'testcase')
-    elcm      = ElcmApi()
+    elcm = ElcmApi()
 
     if request.method == 'GET':
+        # Fetch raw YAML entries from ELCM
         info = elcm.GetTestCasesInfo(
-            test_cases=[name] if file_type=='testcase' else [],
-            ues       =[name] if file_type=='ues'      else []
+            test_cases=[name] if file_type == 'testcase' else [],
+            ues=[name] if file_type == 'ues' else []
         )
-        bucket = info.get('TestCases' if file_type=='testcase' else 'UEs', {})
+        bucket_key = 'TestCases' if file_type == 'testcase' else 'UEs'
+        bucket = info.get(bucket_key, {})
         entries = bucket.get(name) or []
         if not entries:
-            flash(f"No existe {file_type} '{name}' en ELCM.", 'warning')
+            flash(f"{file_type} '{name}' does not exist in ELCM.", 'warning')
             return redirect(url_for('experiment.create'))
+
+        # Join multiple YAML documents if needed
         content = "\n---\n".join(entries)
         return render_template(
             'experiment/edit_test_case.html',
@@ -461,11 +465,12 @@ def edit_test_case():
             favicon=branding.FavIcon
         )
 
+    # POST: validate YAML and upload back to ELCM
     new_yaml = request.form.get('yaml_content', '')
     try:
         yaml.safe_load(new_yaml)
     except yaml.YAMLError as e:
-        flash(f"YAML inválido: {e}", 'danger')
+        flash(f"Invalid YAML: {e}", 'danger')
         return render_template(
             'experiment/edit_test_case.html',
             test_case_name=name,
@@ -476,6 +481,7 @@ def edit_test_case():
             favicon=branding.FavIcon
         )
 
+    # Wrap the edited YAML in a FileStorage so the ELCM client can process it
     bytes_io = io.BytesIO(new_yaml.encode('utf-8'))
     file_storage = FileStorage(
         stream=bytes_io,
@@ -485,8 +491,8 @@ def edit_test_case():
 
     resp = elcm.upload_test_case(file_storage, file_type)
     if resp.get('success'):
-        flash(f"{file_type.capitalize()} '{name}' actualizado correctamente.", 'success')
+        flash(f"{file_type.capitalize()} '{name}' updated successfully.", 'success')
     else:
-        flash(f"Error al actualizar: {resp.get('message', resp)}", 'danger')
+        flash(f"Error updating: {resp.get('message', resp)}", 'danger')
 
     return redirect(url_for('experiment.create'))
