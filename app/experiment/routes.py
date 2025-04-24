@@ -21,6 +21,7 @@ branding = config.Branding
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
+    Facility.Reload()
     experimentTypes = ['Standard', 'Custom', 'MONROE']
     scenarios = Facility.Scenarios()
     scenarios = ['None'] if len(scenarios) == 0 else scenarios
@@ -112,6 +113,7 @@ def create():
 @bp.route('/create_dist', methods=['GET', 'POST'])
 @login_required
 def createDist():
+    Facility.Reload()
     eastWest = config.EastWest
     if not eastWest.Enabled:
         return abort(404)
@@ -361,12 +363,11 @@ def delete_test_case():
 
     try:
         response = ElcmApi().delete_test_case(test_case_name, file_type)
-
+        Facility.Reload()
         if "error" in response:
             return jsonify({"success": False, "message": response["error"]}), 500
 
         if response.get("success", False):
-            Facility.Reload()
             return jsonify({
                 "success": True,
                 "message": f"{file_type} {test_case_name} deleted via ELCM API"
@@ -392,9 +393,8 @@ def upload_test_case():
 
     try:
         response = ElcmApi().upload_test_case(file,file_type)
-
+        Facility.Reload()
         if response.get("success", False):
-            Facility.Reload()
             return jsonify({"success": True, "message": f"Test case {file.filename} uploaded via ELCM API. Type: {file_type}"})
         else:
             return jsonify({"success": False, "message": f"Failed to upload test case: {response}"}), 400
@@ -489,7 +489,7 @@ def edit_test_case():
         content_type="application/x-yaml"
     )
 
-    resp = elcm.upload_test_case(file_storage, file_type)
+    resp = elcm.edit_test_case(file_storage, file_type)
     if resp.get('success'):
         flash(f"{file_type.capitalize()} '{name}' updated successfully.", 'success')
     else:

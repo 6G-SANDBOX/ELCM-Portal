@@ -85,3 +85,13 @@ class ElcmApi(RestClient):
             return response.json()
         except Exception as e:
             return {"success": False, "message": f"Error sending test case: {str(e)}"}
+        
+    def edit_test_case(self, file, file_type: str = "testcase"):
+        url = f"{self.api_url}/facility/edit_test_case"
+        files = {'test_case': (file.filename, file.stream, file.content_type)}
+        data = {'file_type': file_type}
+        try:
+            response = requests.post(url, files=files, data=data)
+            return response.json()
+        except Exception as e:
+            return {"success": False, "message": f"Error sending test case: {str(e)}"}
