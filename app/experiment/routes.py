@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Dict, List, Tuple, Set
-from flask import render_template, flash, redirect, url_for, request, jsonify, abort
+from flask import render_template, flash, redirect, url_for, request, jsonify, abort, Response
 from flask.json import loads as jsonParse
 from flask_login import current_user, login_required
 from REST import ElcmApi, AnalyticsApi
@@ -496,3 +496,31 @@ def edit_test_case():
         flash(f"Error updating: {resp.get('message', resp)}", 'danger')
 
     return redirect(url_for('experiment.create'))
+
+@bp.route('/download_test_case', methods=['GET'])
+@login_required
+def download_test_case():
+    test_case_name = request.args.get('test_case_name')
+    file_type      = request.args.get('file_type', 'testcase')
+    elcm           = ElcmApi()
+
+    info = elcm.GetTestCasesInfo(
+        test_cases=[test_case_name] if file_type == 'testcase' else [],
+        ues=[test_case_name]       if file_type == 'ues'      else []
+    ) or {}
+
+    bucket_key = 'TestCases' if file_type == 'testcase' else 'UEs'
+    entries    = info.get(bucket_key, {}).get(test_case_name, [])
+
+    if not entries:
+        abort(404, description=f"{file_type} '{test_case_name}' no found")
+
+    content = "\n---\n".join(entries)
+
+    return Response(
+        content,
+        mimetype='application/x-yaml',
+        headers={
+            'Content-Disposition': f'attachment; filename="{test_case_name}.yml"'
+        }
+    )

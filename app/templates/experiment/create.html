@@ -182,7 +182,6 @@
     <div class="col-sm-12" id="fileManagementSection" style="margin-top:20px; margin-bottom:20px;">
         <h4>Manage Test Cases / UEs</h4>
         <div class="row">
-            <!-- Wider column for the table -->
             <div class="col-sm-8">
                 <h5>Existing Files</h5>
                 <div class="table-responsive">
@@ -202,6 +201,10 @@
                                 <td>
                                     <div style="display:inline-flex; align-items:center; gap:0.25rem;">
                                         <a class="btn btn-blue btn-sm"
+                                           href="{{ url_for('experiment.download_test_case') }}?test_case_name={{ tc }}&file_type=testcase">
+                                            Download
+                                        </a>
+                                        <a class="btn btn-blue btn-sm"
                                            href="{{ url_for('experiment.edit_test_case') }}?test_case_name={{ tc }}&file_type=testcase">
                                             Edit
                                         </a>
@@ -220,6 +223,10 @@
                                 <td>
                                     <div style="display:inline-flex; align-items:center; gap:0.25rem;">
                                         <a class="btn btn-blue btn-sm"
+                                           href="{{ url_for('experiment.download_test_case') }}?test_case_name={{ ue }}&file_type=ues">
+                                            Download
+                                        </a>
+                                        <a class="btn btn-blue btn-sm"
                                            href="{{ url_for('experiment.edit_test_case') }}?test_case_name={{ ue }}&file_type=ues">
                                             Edit
                                         </a>
@@ -235,7 +242,6 @@
                     </table>
                 </div>
             </div>
-            <!-- Narrower column for upload -->
             <div class="col-sm-4">
                 <h5>Upload File</h5>
                 <div class="form-group">
