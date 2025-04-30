@@ -553,8 +553,8 @@ def create_test_case():
             flash(f"{file_type.capitalize()} '{name}' created successfully.", "success")
             return redirect(url_for('experiment.create'))
         else:
-            flash(f"Error creating {file_type}: {response.get('message')}", "danger")
-            return redirect(url_for('experiment.create'))
+            flash(f"Error creating {file_type.capitalize()}: {response.get('message')}", "danger")
+            return redirect(url_for('experiment.create_test_case'))
 
     return render_template(
         'experiment/create_test_case.html',
