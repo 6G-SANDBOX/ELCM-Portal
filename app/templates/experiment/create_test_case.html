@@ -3,6 +3,18 @@
 {% block content %}
 <div class="container" style="max-width: 900px; margin-top: 30px;">
   <h2>Create New Test Case / UE</h2>
+
+  {# Flash messages #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category in ['error','danger'] else category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
   <form method="post" onsubmit="copyEditor()">
     <div class="form-group">
       <label for="name">Name</label>
@@ -30,15 +42,15 @@
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
-<script>
-  const editor = ace.edit("editor");
-  editor.session.setMode("ace/mode/yaml");
-  editor.setTheme("ace/theme/github");
+  {{ super() }}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
+  <script>
+    const editor = ace.edit("editor");
+    editor.session.setMode("ace/mode/yaml");
+    editor.setTheme("ace/theme/github");
 
-  function copyEditor() {
-    document.getElementById("yaml_content").value = editor.getValue();
-  }
-</script>
+    function copyEditor() {
+      document.getElementById("yaml_content").value = editor.getValue();
+    }
+  </script>
 {% endblock %}
