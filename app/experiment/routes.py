@@ -524,3 +524,41 @@ def download_test_case():
             'Content-Disposition': f'attachment; filename="{test_case_name}.yml"'
         }
     )
+
+@bp.route('/create_test_case', methods=['GET', 'POST'])
+@login_required
+def create_test_case():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        content = request.form.get('yaml_content')
+        file_type = request.form.get('file_type', 'testcase')
+
+        if not name or not content:
+            flash("Name and YAML content are required.", "warning")
+            return redirect(url_for('experiment.create_test_case'))
+
+        try:
+            yaml.safe_load(content)
+        except yaml.YAMLError as e:
+            flash(f"Invalid YAML: {e}", "danger")
+            return redirect(url_for('experiment.create_test_case'))
+
+        file_stream = io.BytesIO(content.encode('utf-8'))
+        file_storage = FileStorage(stream=file_stream, filename=f"{name}.yml", content_type='application/x-yaml')
+
+        elcm = ElcmApi()
+        response = elcm.upload_test_case(file_storage, file_type)
+
+        if response.get("success"):
+            flash(f"{file_type.capitalize()} '{name}' created successfully.", "success")
+            return redirect(url_for('experiment.create'))
+        else:
+            flash(f"Error creating {file_type}: {response.get('message')}", "danger")
+            return redirect(url_for('experiment.create'))
+
+    return render_template(
+        'experiment/create_test_case.html',
+        platformName=branding.Platform,
+        header=branding.Header,
+        favicon=branding.FavIcon
+    )
