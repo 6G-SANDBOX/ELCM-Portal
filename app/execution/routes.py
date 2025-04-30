@@ -109,3 +109,36 @@ def cancel_execution(executionId: int):
         flash(f'Unexpected error cancelling execution: {e}', 'error')
 
     return redirect(url_for('execution.execution', executionId=executionId))
+
+@bp.route('/<int:executionId>/testcases', methods=['GET'])
+@login_required
+def execution_test_cases(executionId: int):
+    execution: Execution = Execution.query.get(executionId)
+    if not execution:
+        flash("Execution not found", "error")
+        return redirect(url_for('main.index'))
+
+    experiment: Experiment = Experiment.query.get(execution.experiment_id)
+    if experiment.user_id != current_user.id:
+        flash("Unauthorized access", "danger")
+        return redirect(url_for('main.index'))
+
+    try:
+        elcm = ElcmApi()
+        response = elcm.GetExecutionInfo(executionId)
+        testcases = response.get("TestCases", {})
+        ues = response.get("UEs", {})
+    except Exception as e:
+        flash(f"Error fetching execution test cases: {e}", "error")
+        testcases = {}
+        ues = {}
+
+    return render_template(
+        'execution/test_cases.html',
+        execution=execution,
+        testcases=testcases,
+        ues=ues,
+        platformName=branding.Platform,
+        header=branding.Header,
+        favicon=branding.FavIcon
+    )

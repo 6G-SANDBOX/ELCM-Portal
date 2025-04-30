@@ -95,3 +95,12 @@ class ElcmApi(RestClient):
             return response.json()
         except Exception as e:
             return {"success": False, "message": f"Error sending test case: {str(e)}"}
+        
+    def GetExecutionInfo(self, executionId: int) -> Optional[Dict[str, Dict[str, List[str]]]]:
+        url = f'{self.api_url}/facility/execution/info'
+        payload = {"ExecutionId": executionId}
+        try:
+            response = self.HttpPost(url, {'Content-Type': 'application/json'}, json.dumps(payload))
+            return self.ResponseToJson(response)
+        except Exception as e:
+            return None

@@ -32,6 +32,9 @@
         {% set finished = execution.status in ['Finished', 'Cancelled', 'Errored'] %}
         {% set hasDashboard = (grafanaUrl is not none and execution.dashboard_url) %}
 
+        <a class="btn btn-blue btn-sm {{ "" if finished else "disabled"}}"
+             href="/execution/{{ execution.id }}/testcases" role="button" target="_blank">🧪</a>
+
         <a class="btn btn-darkBlue btn-sm" role="button"
                 href="/execution/{{ execution.id }}">📄</a>
 
