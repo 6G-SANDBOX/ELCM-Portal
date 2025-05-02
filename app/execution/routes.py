@@ -98,12 +98,13 @@ def cancel_execution(executionId: int):
             return redirect(url_for('execution.execution', executionId=executionId))
 
         response = ElcmApi().CancelExecution(executionId)
-        if response:
+        if response.get("success"):
             Log.I(f'Execution {executionId} cancelled successfully.')
             flash(f'Execution {executionId} cancelled successfully', 'success')
         else:
-            Log.E(f'Failed to cancel execution {executionId}.')
-            flash(f'Failed to cancel execution {executionId}', 'error')
+            error_message = response.get("message", "No message provided")
+            Log.E(f'Failed to cancel execution {executionId}, {error_message}.')
+            flash(f'Failed to cancel execution {executionId}: {error_message}', 'error')
     except Exception as e:
         Log.E(f'Unexpected error while cancelling execution {executionId}: {e}')
         flash(f'Unexpected error cancelling execution: {e}', 'error')

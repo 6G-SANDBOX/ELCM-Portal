@@ -62,7 +62,7 @@ class ElcmApi(RestClient):
         except: return []
 
     def CancelExecution(self, executionId: int):
-        url = f'{self.api_url}/execution/{executionId}/cancel'
+        url = f'{self.api_url}/execution/{executionId}/cancel_execution_api'
         response = self.HttpGet(url)
         return RestClient.ResponseToJson(response)
     
