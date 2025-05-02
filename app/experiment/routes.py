@@ -529,22 +529,34 @@ def download_test_case():
 @login_required
 def create_test_case():
     if request.method == 'POST':
-        name = request.form.get('name')
         content = request.form.get('yaml_content')
         file_type = request.form.get('file_type', 'testcase')
 
-        if not name or not content:
-            flash("Name and YAML content are required.", "warning")
+        if not content:
+            flash("YAML content is required.", "warning")
             return redirect(url_for('experiment.create_test_case'))
 
         try:
-            yaml.safe_load(content)
+            data = yaml.safe_load(content)
         except yaml.YAMLError as e:
             flash(f"Invalid YAML: {e}", "danger")
             return redirect(url_for('experiment.create_test_case'))
 
+        if isinstance(data, dict) and "Name" in data:
+            internal_name = data["Name"]
+        elif isinstance(data, dict):
+            internal_name = next(iter(data.keys()))
+        else:
+            flash("YAML must be a mapping with a 'Name' field or a single root key.", "danger")
+            return redirect(url_for('experiment.create_test_case'))
+
         file_stream = io.BytesIO(content.encode('utf-8'))
-        file_storage = FileStorage(stream=file_stream, filename=f"{name}.yml", content_type='application/x-yaml')
+        filename = f"{internal_name}.yml"
+        file_storage = FileStorage(
+            stream=file_stream,
+            filename=filename,
+            content_type='application/x-yaml'
+        )
 
         elcm = ElcmApi()
         response = elcm.upload_test_case(file_storage, file_type)
