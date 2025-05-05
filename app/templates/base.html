@@ -135,9 +135,11 @@
 <div class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
+            {% set bootstrap_alerts = ['success','info','warning','danger'] %}
+            {% set mapping = {'error': 'danger'} %}
             {% for category, message in messages %}
-                <div class="alert {{ 'alert-danger' if category == 'error' else 'alert-info' }} alert_message"
-                     role="alert">
+                {% set alert_type = mapping.get(category, category if category in bootstrap_alerts else 'info') %}
+                <div class="alert alert-{{ alert_type }} alert_message" role="alert">
                     {{ message }}
                 </div>
             {% endfor %}
