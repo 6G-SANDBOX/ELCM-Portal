@@ -1,4 +1,4 @@
-**06/05/2025** [Version 3.8.0]
+**06/05/2025** [Version 3.1.0]
  - Added support for user and admin roles, including password reset and email notifications.
  - Refactored user management logic and permission handling.
  - Improvements in test case and UE management:
