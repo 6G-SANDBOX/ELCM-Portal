@@ -11,9 +11,7 @@
           <strong>{{ name }}</strong>
         </div>
         <div class="card-body">
-          {% for line in definitions %}
-            <pre class="definition-box mb-2">{{ line }}</pre>
-          {% endfor %}
+          <div id="editor-testcase-{{ loop.index }}" class="ace-editor" style="height:200px; border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
         </div>
       </div>
     {% endfor %}
@@ -30,15 +28,28 @@
           <strong>{{ name }}</strong>
         </div>
         <div class="card-body">
-          {% for line in definitions %}
-            <pre class="definition-box mb-2">{{ line }}</pre>
-          {% endfor %}
+          <div id="editor-ue-{{ loop.index }}" class="ace-editor" style="height:200px; border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
         </div>
       </div>
     {% endfor %}
   {% else %}
     <p class="text-muted">No UEs found for this experiment.</p>
   {% endif %}
-
 </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
+  <script>
+    document.querySelectorAll(".ace-editor").forEach((el, index) => {
+      const editor = ace.edit(el);
+      editor.setTheme("ace/theme/github");
+      editor.session.setMode("ace/mode/yaml");
+      editor.setReadOnly(true);
+      editor.renderer.setShowGutter(false);
+      editor.setHighlightActiveLine(false);
+      editor.setShowPrintMargin(false);
+    });
+  </script>
 {% endblock %}
