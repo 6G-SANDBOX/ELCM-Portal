@@ -1,12 +1,10 @@
-**06/05/2025** [Version 3.1.0]
+**07/05/2025** [Version 3.1.0]
  - Added support for user and admin roles.
  - Refactored user management logic and permission handling.
- - Improvements in test case and UE management:
-   - Added support for creating, editing, uploading, deleting, and downloading test cases and UEs in YAML format.
-   - Introduced editors: HTML for informational content and YAML for test case configuration.
- - Enhanced experiment and test case views:
-   - Updated UI components (alerts, buttons, messages, icons, tabs).
-   - Refined visual layout and formatting.
+ - Added support for creating, editing, uploading, deleting, and downloading test cases and UEs in YAML format.
+ - Introduced editors: HTML for informational content and YAML for test case configuration.
+ - Updated UI components (alerts, buttons, messages, icons, tabs).
+ - Refined visual layout and formatting.
  - Updated and extended multiple API endpoints.
  - Updated project dependencies.
  - Restored scenario selector and integrated scenario management improvements.
