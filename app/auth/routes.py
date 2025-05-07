@@ -6,7 +6,7 @@ from app import db
 from app.models import User
 from app.auth import bp
 from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm, UpdateProfileForm
-from Helper import Config, Log
+from Helper import Config, Log, Facility
 from app.email import send_email
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
@@ -130,7 +130,7 @@ def login():
         nextPage = request.args.get('next')
         if not nextPage or urlparse(nextPage).netloc != '':
             nextPage = url_for('main.index')
-
+        Facility.Reload()
         return redirect(nextPage)
 
     return render_template(
