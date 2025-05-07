@@ -1,14 +1,14 @@
-Flask~=3.0.3
+Flask~=3.1.0
 Flask-Bootstrap~=3.3.7.1
 Flask-Login~=0.6.3
 Flask-Mail~=0.10.0
-Flask-Migrate~=4.0.7
+Flask-Migrate~=4.1.0
 Flask-Moment~=1.0.6
 Flask-SQLAlchemy~=3.1.1
 Flask-WTF~=1.2.1
-PyJWT~=2.9.0
-python-dotenv~=1.0.1
+PyJWT~=2.10.1
+python-dotenv~=1.1.0
 PyYAML~=6.0.2
 requests~=2.32.3
 email-validator~=2.2.0
-urllib3~=2.0.0 ; python_version >= "3.12"  # Avoid ModuleNotFoundError on Python 3.12+
+urllib3~=2.4.0

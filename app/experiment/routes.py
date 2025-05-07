@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Dict, List, Tuple, Set
-from flask import render_template, flash, redirect, url_for, request, jsonify, abort
+from flask import render_template, flash, redirect, url_for, request, jsonify, abort, Response
 from flask.json import loads as jsonParse
 from flask_login import current_user, login_required
 from REST import ElcmApi, AnalyticsApi
@@ -10,6 +10,10 @@ from app.models import Experiment, Execution, Action
 from app.experiment.forms import ExperimentForm, RunExperimentForm, DistributedStep1Form, DistributedStep2Form
 from app.execution.routes import getLastExecution
 from Helper import Config, Log, Facility
+from datetime import datetime, timedelta
+import io, yaml
+from werkzeug.datastructures import FileStorage
+
 
 config = Config()
 branding = config.Branding
@@ -17,6 +21,7 @@ branding = config.Branding
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
+    Facility.Reload()
     experimentTypes = ['Standard', 'Custom', 'MONROE']
     scenarios = Facility.Scenarios()
     scenarios = ['None'] if len(scenarios) == 0 else scenarios
@@ -108,6 +113,7 @@ def create():
 @bp.route('/create_dist', methods=['GET', 'POST'])
 @login_required
 def createDist():
+    Facility.Reload()
     eastWest = config.EastWest
     if not eastWest.Enabled:
         return abort(404)
@@ -307,3 +313,264 @@ def kickstart(experimentId: int):
         return f'Hush now! Exp {experimentId} - Exec {jsonResponse["ExecutionId"]}'
     except Exception as e:
         return str(e)
+        
+@bp.route('/delete/<int:experiment_id>', methods=['POST'])
+@login_required
+def delete_experiment(experiment_id):
+    
+    experiment = Experiment.query.get_or_404(experiment_id)
+
+    # Check if the current user has permission to delete the experiment
+    if experiment.user_id != current_user.id:
+        flash("You do not have permission to delete this experiment.", "danger")
+        return redirect(url_for('main.index'))
+
+    # Retrieve all executions related to the experiment
+    executions = experiment.experimentExecutions() or []
+    
+    # Instantiate the API client
+    api = ElcmApi()
+    
+    # Cancel each execution using the cancel endpoint
+    for exe in executions:
+        try:
+            url = f'{api.api_url}/execution/{exe.id}/cancel'
+            response = api.HttpGet(url)
+            if response.status != 200:
+                Log.W(f"Cancellation for execution {exe.id} did not return status 200 (got {response.status}).")
+                flash(f"Error canceling execution {exe.id}. Please try again.", "warning")
+                return redirect(url_for('main.index'))
+        except Exception as e:
+            Log.E(f"Error canceling execution {exe.id}: {e}")
+            flash(f"Error canceling execution {exe.id}: {e}", "error")
+            return redirect(url_for('main.index'))
+
+    Execution.query.filter_by(experiment_id=experiment_id).delete()
+
+    db.session.delete(experiment)
+    db.session.commit()
+    flash("Experiment and its executions have been cancelled and deleted.", "success")
+    return redirect(url_for('main.index'))
+
+@bp.route('/delete_test_case', methods=['POST'])
+@login_required
+def delete_test_case():
+    test_case_name = request.json.get('test_case_name')
+    file_type = request.json.get('file_type', 'testcase')
+
+    if not test_case_name:
+        return jsonify({"success": False, "message": "No test case name provided"}), 400
+
+    try:
+        response = ElcmApi().delete_test_case(test_case_name, file_type)
+        Facility.Reload()
+        if "error" in response:
+            return jsonify({"success": False, "message": response["error"]}), 500
+
+        if response.get("success", False):
+            return jsonify({
+                "success": True,
+                "message": f"{file_type} {test_case_name} deleted via ELCM API"
+            })
+        else:
+            return jsonify({"success": False, "message": f"Failed to delete {file_type}: {response}"}), 400
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Exception: {str(e)}"}), 500
+
+
+@bp.route('/upload_test_case', methods=['POST'])
+@login_required
+def upload_test_case():
+    file = request.files.get('test_case')
+    file_type = request.form.get('file_type', 'testcase')
+
+    if not file:
+        return jsonify({"success": False, "message": "No file received"}), 400
+
+    if not file.filename.lower().endswith('.yml'):
+        return jsonify({"success": False, "message": "Invalid file extension. Only .yml allowed."}), 400
+
+    try:
+        response = ElcmApi().upload_test_case(file,file_type)
+        Facility.Reload()
+        if response.get("success", False):
+            return jsonify({"success": True, "message": f"Test case {file.filename} uploaded via ELCM API. Type: {file_type}"})
+        else:
+            return jsonify({"success": False, "message": f"Failed to upload test case: {response}"}), 400
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Exception: {str(e)}"}), 500
+
+@bp.route('/<experimentId>/test_cases', methods=['GET'])
+@login_required
+def test_cases(experimentId: int):
+    experiment = Experiment.query.get(experimentId)
+    if experiment is None:
+        flash('Experiment not found', 'error')
+        return redirect(url_for('main.index'))
+    
+    if experiment.user_id != current_user.id:
+        flash("Unauthorized access", "danger")
+        return redirect(url_for('main.index'))
+
+    test_case_names = experiment.test_cases or []
+    ue_names = experiment.ues or []
+
+    api = ElcmApi()
+    facility_data = api.GetTestCasesInfo(
+        test_cases=test_case_names,
+        ues=ue_names
+    ) or {}
+
+    return render_template(
+        'experiment/test_cases.html',
+        experiment=experiment,
+        filtered_test_cases=facility_data.get("TestCases", {}),
+        filtered_ues=facility_data.get("UEs", {}),
+        platformName=branding.Platform,
+        header=branding.Header,
+        favicon=branding.FavIcon
+    )
+
+@bp.route('/edit_test_case', methods=['GET', 'POST'])
+@login_required
+def edit_test_case():
+    name = request.args.get('test_case_name')
+    file_type = request.args.get('file_type', 'testcase')
+    elcm = ElcmApi()
+
+    if request.method == 'GET':
+        # Fetch raw YAML entries from ELCM
+        info = elcm.GetTestCasesInfo(
+            test_cases=[name] if file_type == 'testcase' else [],
+            ues=[name] if file_type == 'ues' else []
+        )
+        bucket_key = 'TestCases' if file_type == 'testcase' else 'UEs'
+        bucket = info.get(bucket_key, {})
+        entries = bucket.get(name) or []
+        if not entries:
+            flash(f"{file_type} '{name}' does not exist in ELCM.", 'warning')
+            return redirect(url_for('experiment.create'))
+
+        # Join multiple YAML documents if needed
+        content = "\n---\n".join(entries)
+        return render_template(
+            'experiment/edit_test_case.html',
+            test_case_name=name,
+            file_type=file_type,
+            content=content,
+            platformName=branding.Platform,
+            header=branding.Header,
+            favicon=branding.FavIcon
+        )
+
+    # POST: validate YAML and upload back to ELCM
+    new_yaml = request.form.get('yaml_content', '')
+    try:
+        yaml.safe_load(new_yaml)
+    except yaml.YAMLError as e:
+        flash(f"Invalid YAML: {e}", 'danger')
+        return render_template(
+            'experiment/edit_test_case.html',
+            test_case_name=name,
+            file_type=file_type,
+            content=new_yaml,
+            platformName=branding.Platform,
+            header=branding.Header,
+            favicon=branding.FavIcon
+        )
+
+    # Wrap the edited YAML in a FileStorage so the ELCM client can process it
+    bytes_io = io.BytesIO(new_yaml.encode('utf-8'))
+    file_storage = FileStorage(
+        stream=bytes_io,
+        filename=f"{name}.yml",
+        content_type="application/x-yaml"
+    )
+
+    resp = elcm.edit_test_case(file_storage, file_type)
+    if resp.get('success'):
+        flash(f"{file_type.capitalize()} '{name}' updated successfully.", 'success')
+    else:
+        flash(f"Error updating: {resp.get('message', resp)}", 'danger')
+
+    return redirect(url_for('experiment.create'))
+
+@bp.route('/download_test_case', methods=['GET'])
+@login_required
+def download_test_case():
+    test_case_name = request.args.get('test_case_name')
+    file_type      = request.args.get('file_type', 'testcase')
+    elcm           = ElcmApi()
+
+    info = elcm.GetTestCasesInfo(
+        test_cases=[test_case_name] if file_type == 'testcase' else [],
+        ues=[test_case_name]       if file_type == 'ues'      else []
+    ) or {}
+
+    bucket_key = 'TestCases' if file_type == 'testcase' else 'UEs'
+    entries    = info.get(bucket_key, {}).get(test_case_name, [])
+
+    if not entries:
+        abort(404, description=f"{file_type} '{test_case_name}' no found")
+
+    content = "\n---\n".join(entries)
+
+    return Response(
+        content,
+        mimetype='application/x-yaml',
+        headers={
+            'Content-Disposition': f'attachment; filename="{test_case_name}.yml"'
+        }
+    )
+
+@bp.route('/create_test_case', methods=['GET', 'POST'])
+@login_required
+def create_test_case():
+    if request.method == 'POST':
+        content = request.form.get('yaml_content')
+        file_type = request.form.get('file_type', 'testcase')
+
+        if not content:
+            flash("YAML content is required.", "warning")
+            return redirect(url_for('experiment.create_test_case'))
+
+        try:
+            data = yaml.safe_load(content)
+        except yaml.YAMLError as e:
+            flash(f"Invalid YAML: {e}", "danger")
+            return redirect(url_for('experiment.create_test_case'))
+
+        if isinstance(data, dict) and "Name" in data:
+            internal_name = data["Name"]
+        elif isinstance(data, dict):
+            internal_name = next(iter(data.keys()))
+        else:
+            flash("YAML must be a mapping with a 'Name' field or a single root key.", "danger")
+            return redirect(url_for('experiment.create_test_case'))
+
+        file_stream = io.BytesIO(content.encode('utf-8'))
+        filename = f"{internal_name}.yml"
+        file_storage = FileStorage(
+            stream=file_stream,
+            filename=filename,
+            content_type='application/x-yaml'
+        )
+
+        elcm = ElcmApi()
+        response = elcm.upload_test_case(file_storage, file_type)
+
+        if response.get("success"):
+            flash(f"{response.get("message")}", "success")
+            return redirect(url_for('experiment.create'))
+        else:
+            flash(f"Error creating {file_type.capitalize()}: {response.get('message')}", "danger")
+            return redirect(url_for('experiment.create_test_case'))
+
+    return render_template(
+        'experiment/create_test_case.html',
+        platformName=branding.Platform,
+        header=branding.Header,
+        favicon=branding.FavIcon
+    )

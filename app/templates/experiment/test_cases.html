@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<div class="container mt-4">
+  <h2>Test Cases for Experiment: <strong>{{ experiment.name }}</strong></h2>
+
+  {% if filtered_test_cases %}
+    {% for name, definitions in filtered_test_cases.items() %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <strong>{{ name }}</strong>
+        </div>
+        <div class="card-body">
+          <div id="editor-testcase-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-muted">No test cases found for this experiment.</p>
+  {% endif %}
+
+  <h2 class="mt-5">UEs Used in Experiment</h2>
+
+  {% if filtered_ues %}
+    {% for name, definitions in filtered_ues.items() %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <strong>{{ name }}</strong>
+        </div>
+        <div class="card-body">
+          <div id="editor-ue-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-muted">No UEs found for this experiment.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
+  <script>
+    document.querySelectorAll(".ace-editor").forEach((el) => {
+      const editor = ace.edit(el);
+      editor.setTheme("ace/theme/github");
+      editor.session.setMode("ace/mode/yaml");
+      editor.setReadOnly(true);
+      editor.renderer.setShowGutter(false);
+      editor.setHighlightActiveLine(false);
+      editor.setShowPrintMargin(false);
+      editor.setOptions({
+        maxLines: Infinity,
+        autoScrollEditorIntoView: true
+      });
+
+      const lineHeight = editor.renderer.lineHeight;
+      const numLines = editor.session.getLength();
+      el.style.height = (lineHeight * numLines + 20) + "px";
+      editor.resize();
+    });
+  </script>
+{% endblock %}

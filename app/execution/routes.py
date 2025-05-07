@@ -79,3 +79,67 @@ def execution(executionId: int):
 
 def getLastExecution() -> int:
     return db.session.query(Execution).order_by(Execution.id.desc()).first().id
+
+@bp.route('/<int:executionId>/cancel', methods=['GET'])
+@login_required
+def cancel_execution(executionId: int):
+    try:
+        execution: Execution = Execution.query.get(executionId)
+        if not execution:
+            Log.W(f'Execution {executionId} not found.')
+            flash(f'Execution {executionId} not found.', 'warning')
+            return redirect(url_for('execution.execution', executionId=executionId))
+
+        Log.D(f'Attempting to cancel execution {executionId}, current status: {execution.status}')
+
+        if execution.status == 'Finished':
+            Log.W(f'Execution {executionId} is already finished, cannot cancel.')
+            flash(f'Cannot cancel execution {executionId} because it is already finished.', 'warning')
+            return redirect(url_for('execution.execution', executionId=executionId))
+
+        response = ElcmApi().CancelExecution(executionId)
+        if response.get("success"):
+            Log.I(f'Execution {executionId} cancelled successfully.')
+            flash(f'Execution {executionId} cancelled successfully', 'success')
+        else:
+            error_message = response.get("message", "No message provided")
+            Log.E(f'Failed to cancel execution {executionId}, {error_message}.')
+            flash(f'Failed to cancel execution {executionId}: {error_message}', 'error')
+    except Exception as e:
+        Log.E(f'Unexpected error while cancelling execution {executionId}: {e}')
+        flash(f'Unexpected error cancelling execution: {e}', 'error')
+
+    return redirect(url_for('execution.execution', executionId=executionId))
+
+@bp.route('/<int:executionId>/testcases', methods=['GET'])
+@login_required
+def execution_test_cases(executionId: int):
+    execution: Execution = Execution.query.get(executionId)
+    if not execution:
+        flash("Execution not found", "error")
+        return redirect(url_for('main.index'))
+
+    experiment: Experiment = Experiment.query.get(execution.experiment_id)
+    if experiment.user_id != current_user.id:
+        flash("Unauthorized access", "danger")
+        return redirect(url_for('main.index'))
+
+    try:
+        elcm = ElcmApi()
+        response = elcm.GetExecutionInfo(executionId)
+        testcases = response.get("TestCases", {})
+        ues = response.get("UEs", {})
+    except Exception as e:
+        flash(f"Error fetching execution test cases: {e}", "error")
+        testcases = {}
+        ues = {}
+
+    return render_template(
+        'execution/test_cases.html',
+        execution=execution,
+        testcases=testcases,
+        ues=ues,
+        platformName=branding.Platform,
+        header=branding.Header,
+        favicon=branding.FavIcon
+    )

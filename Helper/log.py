@@ -76,7 +76,7 @@ class Log:
         if not exists(folder): makedirs(folder)
 
         # Accept all messages on Flask logger, but display only up to the selected level
-        app.logger.setLevel(logging.DEBUG)
+        app.logger.setLevel(config.Logging.LogLevel)
         console_handler: logging.StreamHandler = app.logger.handlers[0]
         console_handler.setLevel(config.Logging.AppLevel)
         console_handler.setFormatter(ColoredFormatter(cls.CONSOLE_FORMAT))

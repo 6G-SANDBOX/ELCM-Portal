@@ -20,3 +20,10 @@ Branding:
   FavIcon: 'header.png'
   Header: 'header.png'
   Logo: 'logo.png'
+EmailApi:
+  User: "email@email.com"
+  Password: "password"
+  Port: 587
+  Server: "server"
+  TLS: True
+  SSL: False

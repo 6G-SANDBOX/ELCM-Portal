@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<div class="container" style="max-width:800px; margin-top:20px;">
+  <h2>Edit {{ file_type.capitalize() }}: "{{ test_case_name }}"</h2>
+  
+  <form method="post">
+    <textarea id="yaml_content" name="yaml_content" style="display:none;">{{ content|e }}</textarea>
+    <!-- no newline or spaces here! -->
+    <div id="editor" style="height:500px; border:1px solid #ccc;">{{ content|e }}</div>
+    <!-- buttons in a separate block -->
+    <div style="margin-top:1rem; display:flex; gap:0.5rem;">
+      <button type="submit" class="btn btn-primary" onclick="copyEditor()">Save</button>
+      <a href="{{ url_for('experiment.create') }}" class="btn btn-danger">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
+  <script>
+    const editor = ace.edit("editor");
+    editor.session.setMode("ace/mode/yaml");
+    editor.setTheme("ace/theme/github");
+    function copyEditor() {
+      document.getElementById("yaml_content").value = editor.getValue();
+    }
+  </script>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<style>
+    .center-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 90vh;
+        padding-top: 5vh;
+        width: 100%;
+    }
+    .btn-submit {
+        margin-top: 15px;
+    }
+</style>
+
+<div class="center-container">
+    <div class="card card-custom">
+        <div class="card-body">
+            <h2 class="text-center mb-4">Update Profile</h2>
+
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ form.email.label }} <span class="text-danger">*</span>
+                    {{ form.email(class="form-control") }}
+                    {% if form.email.errors %}
+                        <div class="text-danger">
+                            {% for error in form.email.errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.password.label }}
+                    {{ form.password(class="form-control", placeholder="New Password (optional)") }}
+                    {% if form.password.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password.errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.confirm_password.label }}
+                    {{ form.confirm_password(class="form-control", placeholder="Confirm New Password") }}
+                    {% if form.confirm_password.errors %}
+                        <div class="text-danger">
+                            {% for error in form.confirm_password.errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.current_password.label }} <span class="text-danger">*</span>
+                    {{ form.current_password(class="form-control", placeholder="Enter current password") }}
+                    {% if form.current_password.errors %}
+                        <div class="text-danger">
+                            {% for error in form.current_password.errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-submit">{{ form.submit.label }}</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
