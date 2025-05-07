@@ -11,7 +11,7 @@
           <strong>{{ name }}</strong>
         </div>
         <div class="card-body">
-          <div id="editor-testcase-{{ loop.index }}" class="ace-editor" style="height:200px; border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
+          <div id="editor-testcase-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
         </div>
       </div>
     {% endfor %}
@@ -28,7 +28,7 @@
           <strong>{{ name }}</strong>
         </div>
         <div class="card-body">
-          <div id="editor-ue-{{ loop.index }}" class="ace-editor" style="height:200px; border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
+          <div id="editor-ue-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
         </div>
       </div>
     {% endfor %}
@@ -42,7 +42,7 @@
   {{ super() }}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
   <script>
-    document.querySelectorAll(".ace-editor").forEach((el, index) => {
+    document.querySelectorAll(".ace-editor").forEach((el) => {
       const editor = ace.edit(el);
       editor.setTheme("ace/theme/github");
       editor.session.setMode("ace/mode/yaml");
@@ -50,6 +50,15 @@
       editor.renderer.setShowGutter(false);
       editor.setHighlightActiveLine(false);
       editor.setShowPrintMargin(false);
+      editor.setOptions({
+        maxLines: Infinity,
+        autoScrollEditorIntoView: true
+      });
+
+      const lineHeight = editor.renderer.lineHeight;
+      const numLines = editor.session.getLength();
+      el.style.height = (lineHeight * numLines + 20) + "px";
+      editor.resize();
     });
   </script>
 {% endblock %}
