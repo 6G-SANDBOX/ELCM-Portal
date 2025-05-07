@@ -3,7 +3,7 @@
 ## Requirements
 
  - [Python 3.12.x](https://www.python.org) (see requirements.txt for a detailed view of required packages)
- - [ELCM](https://gitlab.com/morse-uma/elcm) Version 3.0.0 or later
+ - [ELCM](https://gitlab.com/morse-uma/elcm) Version 3.1.0 or later
 
 ### Optional integrations:
 
