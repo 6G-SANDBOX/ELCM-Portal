@@ -131,7 +131,14 @@ class Analytics(possiblyEnabled):
     
 class EmailApi:
     def __init__(self, data: Dict):
-        self.data = data['EmailApi']
+        self.data = data.get('EmailApi', {
+            'User': 'user',
+            'Password': 'password',
+            'Port': 587,
+            'Server': 'server',
+            'TLS': True,
+            'SSL': False
+        })
 
     @property
     def User(self):
