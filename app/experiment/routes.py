@@ -562,7 +562,7 @@ def create_test_case():
         response = elcm.upload_test_case(file_storage, file_type)
 
         if response.get("success"):
-            flash(f"{response.get("message")}", "success")
+            flash(f"{response.get('message')}", "success")
             return redirect(url_for('experiment.create'))
         else:
             flash(f"Error creating {file_type.capitalize()}: {response.get('message')}", "danger")
