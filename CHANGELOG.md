@@ -1,3 +1,6 @@
+**14/05/2025** [Version 3.1.1]  
+ - The `install.sh` and `start.sh` scripts now include executable permissions by default (`chmod +x`), allowing them to be run directly after download.
+
 **07/05/2025** [Version 3.1.0]
  - Added support for user and admin roles.
  - Refactored user management logic and permission handling.
