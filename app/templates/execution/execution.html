@@ -11,7 +11,7 @@
   {{ super() }}
   <script src="{{ url_for('static', filename='js/loading.js') }}"></script>
   <script src="{{ url_for('static', filename='js/updateExecutionStatus.js') }}"></script>
-  {{ logView.logScripts() }}
+  {{ logView.logScripts(execution.id) }}
 
   {% if execution.status not in ['Finished', 'Cancelled', 'Errored'] %}
     <script>
@@ -68,7 +68,6 @@
 {% endblock %}
 
 {% macro accordionCard(accordion, card, logInfo) %}
-  {% set LogLevels = ['Debug', 'Info', 'Warning', 'Error', 'Critical'] %}
   <div class="card">
       <div class="panel panel-info">
           {{ logView.logView(card, logInfo) }}
