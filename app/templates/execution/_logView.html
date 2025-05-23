@@ -6,32 +6,38 @@
     const logLevels = {{ LogLevels|tojson }};
 
     function updateVisibilityFromStorage() {
-        logLevels.forEach(level => {
-            const key = `exec_${execId}_logVisible_${level}`;
-            let vis = localStorage.getItem(key);
-            if (vis === null) {
-                vis = (level === 'Debug' ? 'false' : 'true');
-                localStorage.setItem(key, vis);
-            }
-            if (vis === 'true') {
-                $(".log" + level).removeClass("hidden");
-                $("#button" + level).addClass("active").attr("aria-pressed","true");
-            } else {
-                $(".log" + level).addClass("hidden");
-                $("#button" + level).removeClass("active").attr("aria-pressed","false");
-            }
+        $('[id$="Log"]').each(function(){
+            const card = this.id.replace('Log','');
+            logLevels.forEach(level => {
+                const key = `exec_${execId}_${card}_${level}`;
+                let vis = localStorage.getItem(key);
+                if (vis === null) {
+                    vis = (level === 'Debug' ? 'false' : 'true');
+                    localStorage.setItem(key, vis);
+                }
+                if (vis === 'true') {
+                    $(`.log${card}${level}`).removeClass('hidden');
+                    $(`#button${card}${level}`).addClass('active').attr('aria-pressed','true');
+                } else {
+                    $(`.log${card}${level}`).addClass('hidden');
+                    $(`#button${card}${level}`).removeClass('active').attr('aria-pressed','false');
+                }
+            });
         });
     }
 
     $(document).ready(function() {
         updateVisibilityFromStorage();
-        logLevels.forEach(level => {
-            $(document).on('click', "#button" + level, function(){
-                const key = `exec_${execId}_logVisible_${level}`;
-                $(".log" + level).toggleClass("hidden");
-                const isNowVisible = !$(".log" + level).first().hasClass("hidden");
-                localStorage.setItem(key, isNowVisible);
-            });
+
+        $(document).on('click', '[id^="button"]', function(){
+            const match = this.id.match(/^button(.+?)(Debug|Info|Warning|Error|Critical)$/);
+            if (!match) return;
+            const card  = match[1];
+            const level = match[2];
+            const key   = `exec_${execId}_${card}_${level}`;
+            $(`.log${card}${level}`).toggleClass('hidden');
+            const isNowVisible = !$(`.log${card}${level}`).first().hasClass('hidden');
+            localStorage.setItem(key, isNowVisible);
         });
     });
 </script>
@@ -45,7 +51,7 @@
     <div class="card-body" style="text-align:center">
         {% for level in LogLevels %}
             {% set count = logInfo.Count[level] %}
-            <button id="button{{ level }}" data-toggle="button"
+            <button id="button{{ card }}{{ level }}" data-toggle="button"
                     class="btn btn-darkBlue btn{{ level }} {% if level != 'Debug' %}active{% endif %}"
                     aria-pressed={{ "true" if level != 'Debug' else "false" }}>
                 {{ level }}{% if count != 0 %} {{ count }}{% endif %}
@@ -56,7 +62,7 @@
 
 {% for level, line in logInfo.Log %}
 <p style="padding-left: 10px"
-   class="logLine log{{ level }} color{{ level }} {% if level=='Debug' %}hidden{% endif %}">
+   class="logLine log{{ card }}{{ level }} color{{ level }} {% if level == 'Debug' %}hidden{% endif %}">
     {{ line }}
 </p>
 {% endfor %}
