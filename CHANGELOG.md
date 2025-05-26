@@ -1,3 +1,6 @@
+**26/05/2025** [Version 3.1.2]  
+ - Refactored the log display component
+
 **14/05/2025** [Version 3.1.1]  
  - The `install.sh` and `start.sh` scripts now include executable permissions by default (`chmod +x`), allowing them to be run directly after download.
 
