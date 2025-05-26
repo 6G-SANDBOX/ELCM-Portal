@@ -1,4 +1,4 @@
-**23/05/2025** [Version 3.1.2]  
+**26/05/2025** [Version 3.1.2]  
  - Refactored the log display component
 
 **14/05/2025** [Version 3.1.1]  
