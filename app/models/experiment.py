@@ -65,7 +65,8 @@ class Experiment(db.Model):
             'Parameters': self.parameters,
 
             'Version': '2.1.0',
-            'Extra': {}
+            'Extra': {},
+            'UserId': self.user_id
         }
 
         descriptor.update(self._remoteInfo())
