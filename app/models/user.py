@@ -8,7 +8,7 @@ from app import db, login
 from .experiment import Experiment
 
 class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
@@ -65,7 +65,7 @@ def load_user(id: int) -> User:
     return User.query.get(int(id))
 
 class Action(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     timestamp = db.Column(db.DATETIME)
     message = db.Column(db.String(256))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
