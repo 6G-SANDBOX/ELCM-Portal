@@ -14,14 +14,14 @@ def upgrade():
     op.execute(text('''
         CREATE TABLE user_new (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE,
-            email TEXT NOT NULL UNIQUE,
-            password_hash TEXT,
-            organization TEXT,
-            token TEXT,
+            username VARCHAR(64),
+            email VARCHAR(120),
+            password_hash VARCHAR(128),
+            organization VARCHAR(32),
+            token VARCHAR(512),
             tokenTimestamp DATETIME,
-            is_approved BOOLEAN DEFAULT 0,
-            is_admin BOOLEAN DEFAULT 0
+            is_approved BOOLEAN,
+            is_admin BOOLEAN
         )
     '''))
 
@@ -37,7 +37,7 @@ def upgrade():
         CREATE TABLE action_new (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME,
-            message TEXT,
+            message VARCHAR(256),
             user_id INTEGER,
             FOREIGN KEY(user_id) REFERENCES user(id)
         )
