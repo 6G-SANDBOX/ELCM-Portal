@@ -1,7 +1,7 @@
 """Recreate user and action tables with AUTOINCREMENT"""
 
 from alembic import op
-from sqlalchemy.sql import text
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '6b1af5767b30'
@@ -10,46 +10,49 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
+    # Recreate 'user' table with AUTOINCREMENT
+    op.create_table(
+        'user_new',
+        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('username', sa.String(64)),
+        sa.Column('email', sa.String(120)),
+        sa.Column('password_hash', sa.String(128)),
+        sa.Column('organization', sa.String(32)),
+        sa.Column('token', sa.String(512)),
+        sa.Column('tokenTimestamp', sa.DateTime),
+        sa.Column('is_approved', sa.Boolean),
+        sa.Column('is_admin', sa.Boolean),
+        sqlite_autoincrement=True
+    )
 
-    op.execute(text('''
-        CREATE TABLE user_new (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username VARCHAR(64),
-            email VARCHAR(120),
-            password_hash VARCHAR(128),
-            organization VARCHAR(32),
-            token VARCHAR(512),
-            tokenTimestamp DATETIME,
-            is_approved BOOLEAN,
-            is_admin BOOLEAN
-        )
-    '''))
-
-    op.execute(text('''
+    op.execute('''
         INSERT INTO user_new (id, username, email, password_hash, organization, token, tokenTimestamp, is_approved, is_admin)
         SELECT id, username, email, password_hash, organization, token, tokenTimestamp, is_approved, is_admin FROM user
-    '''))
+    ''')
 
-    op.execute(text('DROP TABLE user'))
-    op.execute(text('ALTER TABLE user_new RENAME TO user'))
+    op.drop_table('user')
+    op.rename_table('user_new', 'user')
 
-    op.execute(text('''
-        CREATE TABLE action_new (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp DATETIME,
-            message VARCHAR(256),
-            user_id INTEGER,
-            FOREIGN KEY(user_id) REFERENCES user(id)
-        )
-    '''))
+    op.create_index('ix_user_email', 'user', ['email'], unique=True)
+    op.create_index('ix_user_username', 'user', ['username'], unique=True)
 
-    op.execute(text('''
+    # Recreate 'action' table with AUTOINCREMENT
+    op.create_table(
+        'action_new',
+        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('timestamp', sa.DateTime),
+        sa.Column('message', sa.String(256)),
+        sa.Column('user_id', sa.Integer, sa.ForeignKey('user.id')),
+        sqlite_autoincrement=True
+    )
+
+    op.execute('''
         INSERT INTO action_new (id, timestamp, message, user_id)
         SELECT id, timestamp, message, user_id FROM action
-    '''))
+    ''')
 
-    op.execute(text('DROP TABLE action'))
-    op.execute(text('ALTER TABLE action_new RENAME TO action'))
+    op.drop_table('action')
+    op.rename_table('action_new', 'action')
 
 def downgrade():
     pass
