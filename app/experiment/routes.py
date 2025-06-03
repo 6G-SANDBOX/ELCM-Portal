@@ -262,6 +262,13 @@ def runExperiment() -> bool:
     """Returns true if no issue has been detected"""
     try:
         jsonResponse: Dict = ElcmApi().Run(int(request.form['id']))
+
+        if jsonResponse.get("success") is False or "ExecutionId" not in jsonResponse:
+            
+            Log.E(f"Failed to start experiment: {jsonResponse}")
+            flash(f"{jsonResponse.get('message', 'Unknown error')}", 'error')
+            return False
+
         executionId = jsonResponse["ExecutionId"]
 
         Log.I(f'Ran experiment {request.form["id"]}')
