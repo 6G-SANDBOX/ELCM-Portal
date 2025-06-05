@@ -1,3 +1,6 @@
+**05/06/2025** [Version 3.1.3]  
+ - Loaded environment variables via `python-dotenv`
+
 **26/05/2025** [Version 3.1.2]  
  - Refactored the log display component
 
