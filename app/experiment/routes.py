@@ -443,8 +443,13 @@ def test_cases(experimentId: int):
 @bp.route('/edit_test_case', methods=['GET', 'POST'])
 @login_required
 def edit_test_case():
-    name = request.args.get('test_case_name')
+    name = request.form.get('test_case_name') or request.args.get('test_case_name')
     file_type = request.args.get('file_type', 'testcase')
+    
+    if file_type not in ('testcase', 'ues'):
+        flash("Invalid file type.", 'danger')
+        return redirect(url_for('experiment.create'))
+
     elcm = ElcmApi()
 
     if request.method == 'GET':
@@ -474,6 +479,18 @@ def edit_test_case():
 
     # POST: validate YAML and upload back to ELCM
     new_yaml = request.form.get('yaml_content', '')
+    if not new_yaml.strip():
+        flash("YAML content cannot be empty.", 'danger')
+        return render_template(
+            'experiment/edit_test_case.html',
+            test_case_name=name,
+            file_type=file_type,
+            content=new_yaml,
+            platformName=branding.Platform,
+            header=branding.Header,
+            favicon=branding.FavIcon
+        )
+    
     try:
         yaml.safe_load(new_yaml)
     except yaml.YAMLError as e:
@@ -498,9 +515,9 @@ def edit_test_case():
 
     resp = elcm.edit_test_case(file_storage, file_type)
     if resp.get('success'):
-        flash(f"{file_type.capitalize()} '{name}' updated successfully.", 'success')
+        flash(resp.get('message'), 'success')
     else:
-        flash(f"Error updating: {resp.get('message', resp)}", 'danger')
+        flash(resp.get('message'), 'danger')
 
     return redirect(url_for('experiment.create'))
 
