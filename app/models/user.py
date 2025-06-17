@@ -6,6 +6,8 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login
 from .experiment import Experiment
+from datetime import datetime, timezone
+from itsdangerous import URLSafeTimedSerializer
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -23,16 +25,16 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'<Id: {self.id}, Username: {self.username}, Email: {self.email}, Organization: {self.organization}>'
 
-    def setPassword(self, password):
+    def setPassword(self, password, issued_at=None):
         self.password_hash = generate_password_hash(password)
+        if issued_at is not None:
+            self.tokenTimestamp = datetime.fromtimestamp(issued_at)
+        else:
+            self.tokenTimestamp = datetime.now()
+
 
     def checkPassword(self, password):
         return check_password_hash(self.password_hash, password)
-
-    def getResetPasswordToken(self, expires_in=600):
-        return jwt.encode(
-            {'reset_password': self.id, 'exp': time() + expires_in},
-            current_app.config['SECRET_KEY'], algorithm='HS256').decode('utf-8')
 
     @property
     def CurrentDispatcherToken(self):
@@ -46,19 +48,32 @@ class User(UserMixin, db.Model):
     def Actions(self) -> List:
         return Action.query.filter_by(user_id=self.id).order_by(Action.id.desc()).limit(10)
 
-    @staticmethod
-    def verifyResetPasswordToken(token):
-        try:
-            id = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])['reset_password']
-            return User.query.get(id)
-        except:
-            return None
-
     def serialization(self) -> Dict[str, object]:
         experimentIds: List[int] = [exp.id for exp in self.Experiments]
         dictionary = {'Id': self.id, 'UserName': self.username, 'Email': self.email, 'Organization': self.organization,
                       'Experiments': experimentIds, 'IsApproved': self.is_approved, 'IsAdmin': self.is_admin}
         return dictionary
+
+    def generate_reset_token(self):
+        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        data = {'email': self.email, 'issued_at': datetime.now(timezone.utc).timestamp()}
+        return serializer.dumps(data, salt="password-reset")
+
+    @staticmethod
+    def verify_reset_token(token, expiration=600):
+        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        try:
+            data = serializer.loads(token, salt="password-reset", max_age=expiration)
+            email = data.get('email')
+            issued_at = float(data.get('issued_at'))
+        except Exception:
+            return None, None
+
+        user = User.query.filter_by(email=email).first()
+        if user and user.tokenTimestamp and issued_at <= user.tokenTimestamp.timestamp():
+            return None, None
+
+        return user, issued_at
 
 @login.user_loader
 def load_user(id: int) -> User:
