@@ -11,7 +11,7 @@
           <strong>{{ name }}</strong>
         </div>
         <div class="card-body">
-          <div id="editor-testcase-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
+          <div id="editor-testcase-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n---\n') }}</div>
         </div>
       </div>
     {% endfor %}
@@ -28,7 +28,7 @@
           <strong>{{ name }}</strong>
         </div>
         <div class="card-body">
-          <div id="editor-ue-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
+          <div id="editor-ue-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n---\n') }}</div>
         </div>
       </div>
     {% endfor %}

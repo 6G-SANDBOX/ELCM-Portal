@@ -95,8 +95,8 @@
 
 {% macro standardSettings() %}
     <div class="col-sm-12 settingsDiv nopadding" id="StandardSettings" style="margin-bottom: 20px">
-        {{ base.testCasesField('Standard', standardTestCases, testCaseNamesPerParameter) }}
-        {{ base.uesField('Standard', ues) }}
+        {{ base.testCasesField('Standard', standardTestCases|unique, testCaseNamesPerParameter) }}
+        {{ base.uesField('Standard', ues|unique) }}
     </div>
 {% endmacro %}
 
@@ -118,8 +118,8 @@
         </div>
 
         <div class="col-sm-12 nopadding" id="CustomAutomatedSettings">
-            {{ base.testCasesField('Custom', customTestCases, testCaseNamesPerParameter) }}
-            {{ base.uesField('Custom', ues) }}
+            {{ base.testCasesField('Custom', customTestCases|unique, testCaseNamesPerParameter) }}
+            {{ base.uesField('Custom', ues|unique) }}
         </div>
 
         <div class="col-sm-12">
@@ -202,7 +202,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for tc in standardTestCases %}
+                            {% for tc in standardTestCases|unique %}
                             <tr>
                                 <td>{{ tc }}</td>
                                 <td>Test Case</td>
@@ -224,7 +224,7 @@
                                 </td>
                             </tr>
                             {% endfor %}
-                            {% for ue in ues %}
+                            {% for ue in ues|unique %}
                             <tr>
                                 <td>{{ ue }}</td>
                                 <td>UEs</td>
