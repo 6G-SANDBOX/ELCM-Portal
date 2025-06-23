@@ -7,11 +7,9 @@
   {% if testcases %}
     {% for name, definitions in testcases.items() %}
       <div class="card mb-4">
-        <div class="card-header">
-          <strong>{{ name }}</strong>
-        </div>
+        <div class="card-header"><strong>{{ name }}</strong></div>
         <div class="card-body">
-          <div id="editor-testcase-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
+          <div id="editor-testcase-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n---\n') | trim }}</div>
         </div>
       </div>
     {% endfor %}
@@ -24,16 +22,29 @@
   {% if ues %}
     {% for name, definitions in ues.items() %}
       <div class="card mb-4">
-        <div class="card-header">
-          <strong>{{ name }}</strong>
-        </div>
+        <div class="card-header"><strong>{{ name }}</strong></div>
         <div class="card-body">
-          <div id="editor-ue-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
+          <div id="editor-ue-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n---\n') | trim }}</div>
         </div>
       </div>
     {% endfor %}
   {% else %}
     <p class="text-muted">No UEs found for this execution.</p>
+  {% endif %}
+
+  <h2 class="mt-5">Scenarios Used in Execution</h2>
+
+  {% if scenarios %}
+    {% for name, definitions in scenarios.items() %}
+      <div class="card mb-4">
+        <div class="card-header"><strong>{{ name }}</strong></div>
+        <div class="card-body">
+          <div id="editor-scenario-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n---\n') | trim }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-muted">No scenarios found for this execution.</p>
   {% endif %}
 </div>
 {% endblock %}
@@ -50,11 +61,7 @@
       editor.renderer.setShowGutter(false);
       editor.setHighlightActiveLine(false);
       editor.setShowPrintMargin(false);
-      editor.setOptions({
-        maxLines: Infinity,
-        autoScrollEditorIntoView: true
-      });
-
+      editor.setOptions({ maxLines: Infinity, autoScrollEditorIntoView: true });
       const lineHeight = editor.renderer.lineHeight;
       const numLines = editor.session.getLength();
       el.style.height = (lineHeight * numLines + 20) + "px";

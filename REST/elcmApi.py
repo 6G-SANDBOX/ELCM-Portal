@@ -61,12 +61,13 @@ class ElcmApi(RestClient):
         except:
             return None
 
-    def GetTestCasesInfo(self, test_cases: List[str], ues: List[str]) -> Optional[Dict[str, Dict[str, List[str]]]]:
+    def GetTestCasesInfo(self, test_cases: List[str], ues: List[str], scenarios: List[str] = []) -> Optional[Dict[str, Dict[str, List[str]]]]:
         user_id = safe_user_id()
         url = f'{self.api_url}/facility/testcases/info'
         payload = {
             "TestCases": test_cases,
-            "UEs": ues
+            "UEs": ues,
+            "Scenarios": scenarios
         }
         if user_id:
             payload["user_id"] = user_id
@@ -76,13 +77,16 @@ class ElcmApi(RestClient):
         except:
             return None
 
-    def GetScenarios(self) -> List[str]:
-        url = f'{self.api_url}/facility/scenarios'
+    def GetScenarios(self) -> Optional[List[str]]:
+        user_id = safe_user_id()
+        url = f"{self.api_url}/facility/scenarios"
+        if user_id:
+            url += f"?user_id={user_id}"
         try:
             response = self.HttpGet(url)
-            return self.ResponseToJson(response)['Scenarios']
-        except:
-            return []
+            return self.ResponseToJson(response).get("Scenarios", [])
+        except Exception:
+            return None
 
     def CancelExecution(self, executionId: int):
         url = f'{self.api_url}/execution/{executionId}/cancel_execution_api'
