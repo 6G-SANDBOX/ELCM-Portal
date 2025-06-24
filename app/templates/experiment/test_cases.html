@@ -11,7 +11,7 @@
           <strong>{{ name }}</strong>
         </div>
         <div class="card-body">
-          <div id="editor-testcase-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
+          <div id="editor-testcase-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n---\n') | trim }}</div>
         </div>
       </div>
     {% endfor %}
@@ -28,12 +28,29 @@
           <strong>{{ name }}</strong>
         </div>
         <div class="card-body">
-          <div id="editor-ue-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n') }}</div>
+          <div id="editor-ue-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n---\n') | trim }}</div>
         </div>
       </div>
     {% endfor %}
   {% else %}
     <p class="text-muted">No UEs found for this experiment.</p>
+  {% endif %}
+
+  <h2 class="mt-5">Scenarios Used in Experiment</h2>
+
+  {% if filtered_scenarios %}
+    {% for name, definitions in filtered_scenarios.items() %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <strong>{{ name }}</strong>
+        </div>
+        <div class="card-body">
+          <div id="editor-scenario-{{ loop.index }}" class="ace-editor" style="border:1px solid #ccc;">{{ definitions | join('\n---\n') | trim }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-muted">No scenarios found for this experiment.</p>
   {% endif %}
 </div>
 {% endblock %}

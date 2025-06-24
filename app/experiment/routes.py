@@ -262,6 +262,13 @@ def runExperiment() -> bool:
     """Returns true if no issue has been detected"""
     try:
         jsonResponse: Dict = ElcmApi().Run(int(request.form['id']))
+
+        if jsonResponse.get("success") is False or "ExecutionId" not in jsonResponse:
+            
+            Log.E(f"Failed to start experiment: {jsonResponse}")
+            flash(f"{jsonResponse.get('message', 'Unknown error')}", 'error')
+            return False
+
         executionId = jsonResponse["ExecutionId"]
 
         Log.I(f'Ran experiment {request.form["id"]}')
@@ -334,10 +341,11 @@ def delete_experiment(experiment_id):
     # Cancel each execution using the cancel endpoint
     for exe in executions:
         try:
-            url = f'{api.api_url}/execution/{exe.id}/cancel'
-            response = api.HttpGet(url)
-            if response.status != 200:
-                Log.W(f"Cancellation for execution {exe.id} did not return status 200 (got {response.status}).")
+            response=ElcmApi().CancelExecution(exe.id)
+            
+            if not response.get("success"):
+                error_message = response.get("message", "No message provided")
+                Log.W(f"Cancellation for execution {exe.id} did not return status 200 (got {error_message}).")
                 flash(f"Error canceling execution {exe.id}. Please try again.", "warning")
                 return redirect(url_for('main.index'))
         except Exception as e:
@@ -416,11 +424,13 @@ def test_cases(experimentId: int):
 
     test_case_names = experiment.test_cases or []
     ue_names = experiment.ues or []
+    scenario_names = [experiment.scenario] if experiment.scenario else []
 
     api = ElcmApi()
     facility_data = api.GetTestCasesInfo(
         test_cases=test_case_names,
-        ues=ue_names
+        ues=ue_names,
+        scenarios=scenario_names
     ) or {}
 
     return render_template(
@@ -428,6 +438,7 @@ def test_cases(experimentId: int):
         experiment=experiment,
         filtered_test_cases=facility_data.get("TestCases", {}),
         filtered_ues=facility_data.get("UEs", {}),
+        filtered_scenarios=facility_data.get("Scenarios", {}),
         platformName=branding.Platform,
         header=branding.Header,
         favicon=branding.FavIcon
@@ -436,19 +447,31 @@ def test_cases(experimentId: int):
 @bp.route('/edit_test_case', methods=['GET', 'POST'])
 @login_required
 def edit_test_case():
-    name = request.args.get('test_case_name')
+    name = request.form.get('test_case_name') or request.args.get('test_case_name')
     file_type = request.args.get('file_type', 'testcase')
+    
+    if file_type not in ('testcase', 'ues', 'scenarios'):
+        flash("Invalid file type.", 'danger')
+        return redirect(url_for('experiment.create'))
+
     elcm = ElcmApi()
 
     if request.method == 'GET':
-        # Fetch raw YAML entries from ELCM
+        # Fetch raw YAML entries from ELCM using unified method
         info = elcm.GetTestCasesInfo(
             test_cases=[name] if file_type == 'testcase' else [],
-            ues=[name] if file_type == 'ues' else []
+            ues=[name] if file_type == 'ues' else [],
+            scenarios=[name] if file_type == 'scenarios' else []
         )
-        bucket_key = 'TestCases' if file_type == 'testcase' else 'UEs'
-        bucket = info.get(bucket_key, {})
-        entries = bucket.get(name) or []
+
+        bucket_key = {
+            'testcase': 'TestCases',
+            'ues': 'UEs',
+            'scenarios': 'Scenarios'
+        }[file_type]
+
+        entries = info.get(bucket_key, {}).get(name, []) if info else []
+
         if not entries:
             flash(f"{file_type} '{name}' does not exist in ELCM.", 'warning')
             return redirect(url_for('experiment.create'))
@@ -467,6 +490,18 @@ def edit_test_case():
 
     # POST: validate YAML and upload back to ELCM
     new_yaml = request.form.get('yaml_content', '')
+    if not new_yaml.strip():
+        flash("YAML content cannot be empty.", 'danger')
+        return render_template(
+            'experiment/edit_test_case.html',
+            test_case_name=name,
+            file_type=file_type,
+            content=new_yaml,
+            platformName=branding.Platform,
+            header=branding.Header,
+            favicon=branding.FavIcon
+        )
+    
     try:
         yaml.safe_load(new_yaml)
     except yaml.YAMLError as e:
@@ -491,9 +526,9 @@ def edit_test_case():
 
     resp = elcm.edit_test_case(file_storage, file_type)
     if resp.get('success'):
-        flash(f"{file_type.capitalize()} '{name}' updated successfully.", 'success')
+        flash(resp.get('message'), 'success')
     else:
-        flash(f"Error updating: {resp.get('message', resp)}", 'danger')
+        flash(resp.get('message'), 'danger')
 
     return redirect(url_for('experiment.create'))
 
@@ -502,27 +537,28 @@ def edit_test_case():
 def download_test_case():
     test_case_name = request.args.get('test_case_name')
     file_type      = request.args.get('file_type', 'testcase')
-    elcm           = ElcmApi()
 
-    info = elcm.GetTestCasesInfo(
+    info = ElcmApi().GetTestCasesInfo(
         test_cases=[test_case_name] if file_type == 'testcase' else [],
-        ues=[test_case_name]       if file_type == 'ues'      else []
+        ues       =[test_case_name] if file_type == 'ues'      else [],
+        scenarios =[test_case_name] if file_type == 'scenarios' else []
     ) or {}
 
-    bucket_key = 'TestCases' if file_type == 'testcase' else 'UEs'
-    entries    = info.get(bucket_key, {}).get(test_case_name, [])
+    bucket_key = {
+        'testcase':  'TestCases',
+        'ues':       'UEs',
+        'scenarios': 'Scenarios'
+    }.get(file_type)
 
+    entries = info.get(bucket_key, {}).get(test_case_name, [])
     if not entries:
-        abort(404, description=f"{file_type} '{test_case_name}' no found")
+        abort(404, description=f"{file_type} '{test_case_name}' not found")
 
     content = "\n---\n".join(entries)
-
     return Response(
         content,
         mimetype='application/x-yaml',
-        headers={
-            'Content-Disposition': f'attachment; filename="{test_case_name}.yml"'
-        }
+        headers={'Content-Disposition': f'attachment; filename="{test_case_name}.yml"'}
     )
 
 @bp.route('/create_test_case', methods=['GET', 'POST'])

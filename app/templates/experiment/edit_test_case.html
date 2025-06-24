@@ -6,6 +6,7 @@
   
   <form method="post">
     <textarea id="yaml_content" name="yaml_content" style="display:none;">{{ content|e }}</textarea>
+    <input type="hidden" name="test_case_name" value="{{ test_case_name }}">
     <!-- no newline or spaces here! -->
     <div id="editor" style="height:500px; border:1px solid #ccc;">{{ content|e }}</div>
     <!-- buttons in a separate block -->

@@ -129,16 +129,19 @@ def execution_test_cases(executionId: int):
         response = elcm.GetExecutionInfo(executionId)
         testcases = response.get("TestCases", {})
         ues = response.get("UEs", {})
+        scenarios = response.get("Scenarios", {})
     except Exception as e:
         flash(f"Error fetching execution test cases: {e}", "error")
         testcases = {}
         ues = {}
+        scenarios = {}
 
     return render_template(
         'execution/test_cases.html',
         execution=execution,
         testcases=testcases,
         ues=ues,
+        scenarios=scenarios,
         platformName=branding.Platform,
         header=branding.Header,
         favicon=branding.FavIcon

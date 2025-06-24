@@ -4,7 +4,7 @@ from typing import Dict
 from flask import request, jsonify
 from app import db
 from app.api import bp
-from app.models import Execution
+from app.models import Execution, User, Experiment
 from app.execution.routes import getLastExecution
 from Helper import Log
 
@@ -58,3 +58,34 @@ def executionJson(executionId: int) -> Dict[str, object]:
 def nextExecutionId() -> Dict[str, int]:
     Log.D(f'Next execution ID: {getLastExecution() + 1}')
     return jsonify({'NextId': getLastExecution() + 1})
+
+@bp.route('/user/<int:user_id>/get_info', methods=['GET'])
+def get_user_experiment_executions(user_id: int):
+    results = (
+        db.session.query(
+            User.id.label('user_id'),
+            User.username,
+            User.email,
+            Experiment.id.label('experiment_id'),
+            Experiment.name.label('experiment_name'),
+            Execution.id.label('execution_id')
+        )
+        .join(Experiment, Experiment.user_id == User.id)
+        .join(Execution, Execution.experiment_id == Experiment.id)
+        .filter(User.id == user_id)
+        .all()
+    )
+
+    data = [
+        {
+            'user_id': r.user_id,
+            'username': r.username,
+            'email': r.email,
+            'experiment_id': r.experiment_id,
+            'experiment_name': r.experiment_name,
+            'execution_id': r.execution_id
+        }
+        for r in results
+    ]
+
+    return jsonify(data)
