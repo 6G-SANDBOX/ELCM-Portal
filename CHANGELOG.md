@@ -1,3 +1,15 @@
+**24/06/2025** [Version 3.2.0]
+
+- Added full support for user-specific operations by passing `UserId` to the ELCM backend in all relevant endpoints and actions.
+- Updated test case, UE, and scenario operations to work within user-specific contexts (upload, edit, delete, list, run).
+- Extended ELCM integration to include scenario management alongside test cases and UEs.
+- Improved password reset flow with secure time-limited tokens and stricter validation.
+- Refactored execution and experiment pages to display associated scenarios in addition to test cases and UEs.
+- Added `/user/<id>/get_info` endpoint to fetch detailed user-experiment-execution relationships.
+- Enhanced validation and messaging when running or cancelling experiments.
+- Refactored database schema (migrations)
+- Updated library requirements
+
 **05/06/2025** [Version 3.1.3]  
  - Loaded environment variables via `python-dotenv`
 
