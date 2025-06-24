@@ -24,6 +24,9 @@
                 {% if experiment.ues %}
                     <br><b>UEs</b>: {{ csv(experiment.ues) }}
                 {% endif %}
+                {% if experiment.scenario %}
+                    <br><b>Scenario</b>: {{ experiment.scenario }}
+                {% endif %}
             {% else %}
                 Not automated
             {% endif %}
@@ -52,8 +55,11 @@
             {% if remoteSide is not none %}
                 <br>
                 <b>TestCases</b>: {{ csv(remoteSide.test_cases) }}
-                {% if experiment.ues %}
+                {% if remoteSide.ues %}
                     <br><b>UEs</b>: {{ csv(remoteSide.ues) }}
+                {% endif %}
+                {% if remoteSide.scenario %}
+                    <br><b>Scenario</b>: {{ remoteSide.scenario }}
                 {% endif %}
             {% endif %}
         {% endif %}
