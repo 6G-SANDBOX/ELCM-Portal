@@ -20,7 +20,7 @@
     <td class="col-md-4" style="font-size: small;">
         {% if experiment.type != "MONROE" %}
             {% if experiment.automated %}
-                <b>TestCases</b>: {{ csv(experiment.test_cases) }}
+                <b>Test Cases</b>: {{ csv(experiment.test_cases) }}
                 {% if experiment.ues %}
                     <br><b>UEs</b>: {{ csv(experiment.ues) }}
                 {% endif %}
@@ -54,7 +54,7 @@
             <b>Remote: </b>{{ experiment.remotePlatform }}
             {% if remoteSide is not none %}
                 <br>
-                <b>TestCases</b>: {{ csv(remoteSide.test_cases) }}
+                <b>Test Cases</b>: {{ csv(remoteSide.test_cases) }}
                 {% if remoteSide.ues %}
                     <br><b>UEs</b>: {{ csv(remoteSide.ues) }}
                 {% endif %}
