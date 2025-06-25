@@ -1,4 +1,4 @@
-**24/06/2025** [Version 3.2.0]
+**25/06/2025** [Version 3.2.0]
 
 - Added full support for user-specific operations by passing `UserId` to the ELCM backend in all relevant endpoints and actions.
 - Updated test case, UE, and scenario operations to work within user-specific contexts (upload, edit, delete, list, run).
