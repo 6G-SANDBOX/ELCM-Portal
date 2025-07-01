@@ -249,13 +249,23 @@ label {
 }
 
 /* Panels */
-.dark-theme .panel-info,
-.dark-theme .panel-heading,
-.dark-theme .panel-body {
-    background-color: #252525 !important;
-    color: #e0e0e0 !important;
+.dark-theme .panel-info {
+    background-color: #2a2a2a !important;
     border-color: #444 !important;
+    color: #e0e0e0 !important;
 }
+
+.dark-theme .panel-info .panel-heading {
+    background-color: #333 !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #444 !important;
+}
+
+.dark-theme .panel-info .panel-body {
+    background-color: #2a2a2a !important;
+    color: #cccccc !important;
+}
+
 
 /* Log content */
 .dark-theme .log-content {

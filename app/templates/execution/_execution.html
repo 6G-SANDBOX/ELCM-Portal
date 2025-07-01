@@ -48,5 +48,9 @@
 
         <a class="btn btn-blue btn-sm {{ "" if finished else "disabled"}}"
            href="http://{{ dispatcherUrl }}execution/{{ execution.id }}/results" role="button">💾</a>
+        
+        <a class="btn btn-blue btn-sm {{ "" if finished else "disabled" }}"
+            href="{{ url_for('execution.execution_files', executionId=execution.id) }}" role="button">📂</a>
+
     </td>
 </tr>

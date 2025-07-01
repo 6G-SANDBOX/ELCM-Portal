@@ -162,6 +162,45 @@ class EmailApi:
     def SSL(self):
         return self.data.get('SSL', False)
 
+class MinIOConfig:
+    def __init__(self, data: Dict):
+        self.data = data.get('MinIO', {
+            'Host': 'localhost',
+            'Port': 9000,
+            'AccessKey': 'admin',
+            'SecretKey': 'password123',
+            'Secure': False,
+            'Bucket': 'executions'
+        })
+
+    @property
+    def Host(self):
+        return self.data.get('Host', 'localhost')
+
+    @property
+    def Port(self):
+        return self.data.get('Port', 9000)
+
+    @property
+    def AccessKey(self):
+        return self.data.get('AccessKey', 'admin')
+
+    @property
+    def SecretKey(self):
+        return self.data.get('SecretKey', 'password123')
+
+    @property
+    def Secure(self) -> bool:
+        return self.data.get('Secure', False)
+
+    @property
+    def Bucket(self):
+        return self.data.get('Bucket', 'executions')
+
+    @property
+    def Endpoint(self):
+        return f"{self.Host}:{self.Port}"
+
 
 class Config:
     FILENAME = 'config.yml'
@@ -221,6 +260,11 @@ class Config:
     @property
     def Analytics(self) -> Analytics:
         return Analytics(self.data)
+    
     @property
     def EmailApi(self) -> EmailApi:
         return EmailApi(self.data)
+    
+    @property
+    def MinIO(self) -> MinIOConfig:
+        return MinIOConfig(self.data)
