@@ -3,7 +3,9 @@
 ## Requirements
 
  - [Python 3.12.x](https://www.python.org) (see requirements.txt for a detailed view of required packages)
- - [ELCM](https://gitlab.com/morse-uma/elcm) Version 3.8.0 or later
+ - [ELCM](https://gitlab.com/morse-uma/elcm) Version 3.9.0 or later
+ - [MinIO](https://dl.min.io/server/minio/release/) tested with version **RELEASE.2025-06-13T11-33-47Z**
+
 
 ### Optional integrations:
 
@@ -16,6 +18,9 @@
 
 The Portal requires connectivity with a running instances of the ELCM (for access to the platform registry and  
 experiment execution).
+
+A MinIO server must be running and accessible, the Portal will **not start** without it.
+
 
 > Additional dependencies may be needed depending on your environment. For example, older Windows version may require  
 certain Visual C++ redistributables to be installed, and the following packages are known to be required on many Ubuntu  
