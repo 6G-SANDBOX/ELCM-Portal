@@ -32,5 +32,5 @@ MinIO:
   Port: 9000
   AccessKey: admin
   SecretKey: password123
-  Secure: false
+  Secure: False
   Bucket: executions
