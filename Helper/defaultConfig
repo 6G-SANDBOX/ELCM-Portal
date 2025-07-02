@@ -27,3 +27,10 @@ EmailApi:
   Server: "server"
   TLS: True
   SSL: False
+MinIO:
+  Host: localhost
+  Port: 9000
+  AccessKey: admin
+  SecretKey: password123
+  Secure: False
+  Bucket: executions

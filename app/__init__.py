@@ -7,7 +7,8 @@ from flask_mail import Mail
 from flask_moment import Moment
 from config import Config
 from Helper import Log, Facility, Config as AppConfig
-
+from minio import Minio
+import sys
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -17,6 +18,7 @@ login.login_message = 'Please log in to access this page.'
 bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
+minio_client = None
 
 
 def create_app(config_class=Config):
@@ -43,6 +45,30 @@ def create_app(config_class=Config):
     moment.init_app(app)
     Log.Initialize(app)
 
+    # Initialize MinIO
+    if 'flask' not in sys.argv[0]:
+        global minio_client
+        minio_config = app_config.MinIO
+        try:
+            minio_client = Minio(
+                minio_config.Endpoint,
+                access_key=minio_config.AccessKey,
+                secret_key=minio_config.SecretKey,
+                secure=minio_config.Secure
+            )
+
+            if not minio_client.bucket_exists(minio_config.Bucket):
+                minio_client.make_bucket(minio_config.Bucket)
+
+            app.config['MINIO_BUCKET'] = minio_config.Bucket
+            Log.I("MinIO initialized successfully.")
+
+        except Exception as e:
+            minio_client = None
+            Log.E(f"Failed to connect to MinIO: {e}")
+            raise RuntimeError("Critical error: MinIO could not be initialized. Shutting down.")
+        
+    # Register Blueprints
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
 
@@ -61,8 +87,10 @@ def create_app(config_class=Config):
     from app.execution import bp as execution_bp
     app.register_blueprint(execution_bp, url_prefix='/execution')
 
-    Log.I("Requesting facility information to ELCM...")
-    Facility.Reload()
+
+    if 'flask' not in sys.argv[0]:
+        Log.I("Requesting facility information to ELCM...")
+        Facility.Reload()
 
     eastWest = AppConfig().EastWest
     if eastWest.Enabled:

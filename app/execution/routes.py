@@ -1,11 +1,14 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, request, send_file, current_app
 from flask_login import current_user, login_required
 from typing import Dict
-from app import db
+from app import db, minio_client
 from app.execution import bp
 from app.models import Experiment, Execution
 from Helper import Config, LogInfo, Log
 from REST import ElcmApi, AnalyticsApi
+import io
+import datetime
+import os
 
 config = Config()
 branding = config.Branding
@@ -146,3 +149,114 @@ def execution_test_cases(executionId: int):
         header=branding.Header,
         favicon=branding.FavIcon
     )
+
+@bp.route('/<int:executionId>/files', methods=['GET', 'POST'])
+@login_required
+def execution_files(executionId: int):
+    execution = Execution.query.get(executionId)
+    experiment = Experiment.query.get(execution.experiment_id)
+
+    if not execution or experiment.user_id != current_user.id:
+        flash("Unauthorized or execution not found", "danger")
+        return redirect(url_for('main.index'))
+
+    prefix = f"{current_user.id}/{executionId}/"
+
+    if request.method == 'POST':
+        file = request.files.get('file')
+        comment = request.form.get('comment', '').strip()
+
+        if file and file.filename != '':
+            object_name = f"{prefix}{file.filename}"
+            minio_client.put_object(
+                current_app.config['MINIO_BUCKET'],
+                object_name,
+                file.stream,
+                length=-1,
+                part_size=10 * 1024 * 1024,
+                content_type=file.content_type
+            )
+            flash("File uploaded successfully", "success")
+
+        if comment:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            comment_name = f"{prefix}comment-{timestamp}.txt"
+            comment_stream = io.BytesIO(comment.encode('utf-8'))
+            minio_client.put_object(
+                current_app.config['MINIO_BUCKET'],
+                comment_name,
+                comment_stream,
+                length=len(comment.encode('utf-8')),
+                content_type='text/plain'
+            )
+            flash("Comment saved successfully", "success")
+
+        return redirect(request.url)
+
+    objects = minio_client.list_objects(current_app.config['MINIO_BUCKET'], prefix=prefix)
+
+    files = [
+        os.path.basename(obj.object_name)
+        for obj in objects
+        if obj.object_name and isinstance(obj.object_name, str)
+    ]
+
+    attachments = []
+    comment_files = []
+
+    for f in files:
+        if f.startswith("comment-"):
+            try:
+                object_name = f"{prefix}{f}"
+                response = minio_client.get_object(current_app.config['MINIO_BUCKET'], object_name)
+                content = response.read().decode('utf-8')
+                comment_files.append({'filename': f, 'content': content})
+            except Exception as e:
+                comment_files.append({'filename': f, 'content': f"[Error reading content: {e}]"})
+        else:
+            attachments.append(f)
+
+    comment_files.sort(reverse=True, key=lambda c: c['filename'])
+
+    return render_template(
+        'execution/files.html',
+        execution=execution,
+        comments=comment_files,
+        attachments=attachments,
+        platformName=branding.Platform,
+        header=branding.Header,
+        favicon=branding.FavIcon
+    )
+
+@bp.route('/<int:executionId>/files/download/<filename>')
+@login_required
+def download_execution_file(executionId, filename):
+    execution = Execution.query.get(executionId)
+    if not execution or execution.experiment.user_id != current_user.id:
+        flash("Unauthorized access", "danger")
+        return redirect(url_for('main.index'))
+
+    object_name = f"{current_user.id}/{executionId}/{filename}"
+    try:
+        response = minio_client.get_object(current_app.config['MINIO_BUCKET'], object_name)
+        return send_file(io.BytesIO(response.read()), download_name=filename, as_attachment=True)
+    except Exception:
+        flash("File not found or access denied", "danger")
+        return redirect(url_for('execution.execution_files', executionId=executionId))
+
+@bp.route('/<int:executionId>/files/delete/<filename>')
+@login_required
+def delete_execution_file(executionId, filename):
+    execution = Execution.query.get(executionId)
+    if not execution or execution.experiment.user_id != current_user.id:
+        flash("Unauthorized access", "danger")
+        return redirect(url_for('main.index'))
+
+    object_name = f"{current_user.id}/{executionId}/{filename}"
+    try:
+        minio_client.remove_object(current_app.config['MINIO_BUCKET'], object_name)
+        flash("File deleted successfully", "success")
+    except Exception:
+        flash("Failed to delete file", "danger")
+
+    return redirect(url_for('execution.execution_files', executionId=executionId))
