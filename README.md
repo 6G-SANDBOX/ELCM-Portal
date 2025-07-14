@@ -3,7 +3,7 @@
 ## Requirements
 
  - [Python 3.12.x](https://www.python.org) (see requirements.txt for a detailed view of required packages)
- - [ELCM](https://gitlab.com/morse-uma/elcm) Version 3.9.0 or later
+ - [ELCM](https://gitlab.com/morse-uma/elcm) Version 3.9.1 or later
  - [MinIO](https://dl.min.io/server/minio/release/) tested with version **RELEASE.2025-06-13T11-33-47Z**
 
 
