@@ -1,3 +1,8 @@
+**14/07/2025** [Version 3.2.2]
+
+- Updated the installer.
+- Modified an endpoint to retrieve user information generically.
+
 **02/07/2025** [Version 3.2.1]
 
  - Added support for MinIO as the file storage system.
