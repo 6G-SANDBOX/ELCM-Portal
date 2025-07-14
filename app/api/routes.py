@@ -59,8 +59,8 @@ def nextExecutionId() -> Dict[str, int]:
     Log.D(f'Next execution ID: {getLastExecution() + 1}')
     return jsonify({'NextId': getLastExecution() + 1})
 
-@bp.route('/user/<int:user_id>/get_info', methods=['GET'])
-def get_user_experiment_executions(user_id: int):
+@bp.route('/users/get_info', methods=['GET'])
+def get_all_users_experiment_executions():
     results = (
         db.session.query(
             User.id.label('user_id'),
@@ -72,7 +72,6 @@ def get_user_experiment_executions(user_id: int):
         )
         .join(Experiment, Experiment.user_id == User.id)
         .join(Execution, Execution.experiment_id == Experiment.id)
-        .filter(User.id == user_id)
         .all()
     )
 
