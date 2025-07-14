@@ -11,7 +11,6 @@ if [ ${?} -eq 0 ]; then
     echo "Installing requirements..."
     source ./venv/bin/activate
     pip install -r ./requirements.txt
-    pip install waitress
 
     echo "Initializing database..."
     flask db upgrade
