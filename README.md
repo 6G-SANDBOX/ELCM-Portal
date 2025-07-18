@@ -83,36 +83,50 @@ actions:
 The Portal instance can be configured by editing the `config.yml` file.
 
 - Logging:
-    - Folder: Folder where the log files will be saved. Defaults to `./Logs`.
-    - AppLevel: Minimum message level to display in the terminal output (one of `CRITICAL`, `ERROR`, `WARNING`,
+    - `Folder`: Folder where the log files will be saved. Defaults to `./Logs`.
+    - `AppLevel`: Minimum message level to display in the terminal output (one of `CRITICAL`, `ERROR`, `WARNING`,
       `INFO`, `DEBUG`). Defaults to `INFO`.
-    - LogLevel: Minimum message level to write in the log files. Defaults to `DEBUG`.
+    - `LogLevel`: Minimum message level to write in the log files. Defaults to `DEBUG`.
 - ELCM:
-    - Host: Location of the machine where the ELCM is running (localhost by default).
-    - Port: Port where the ELCM is listening for connections (5001 by default).
-- Grafana URL: Base URL of Grafana Dashboard to display Execution results.
+    - `Host`: Location of the machine where the ELCM is running (localhost by default).
+    - `Port`: Port where the ELCM is listening for connections (5001 by default).
+- `Grafana URL`: Base URL of Grafana Dashboard to display Execution results.
 - EastWest: Configuration for distributed experiments.
-    - Enabled: Boolean value indicating if the East/West interfaces are available. Defaults to `False`.
-    - Remotes: Dictionary containing the connection configuration for each remote platform's Portal, with each key
-      containing 'Host' and 'Port' values in the same format as in the `ELCM` section. Defaults to an empty
+    - `Enabled`: Boolean value indicating if the East/West interfaces are available. Defaults to `False`.
+    - `Remotes`: Dictionary containing the connection configuration for each remote platform's Portal, with each key
+      containing `Host` and `Port` values in the same format as in the `ELCM` section. Defaults to an empty
       dictionary (`{}`).
 - Analytics:
-    - Enabled: Boolean value indicating if the Analytics Dashboard is available. Defaults to `False`.
-    - URL: External URL of the Analytics Dashboard
-    - Secret: Secret key shared with the Analytics Dashboard, used in order to create secure URLs
+    - `Enabled`: Boolean value indicating if the Analytics Dashboard is available. Defaults to `False`.
+    - `URL`: External URL of the Analytics Dashboard
+    - `Secret`: Secret key shared with the Analytics Dashboard, used in order to create secure URLs
 - Branding:
-  - Platform: Platform name. Will be displayed in the Portal and will identify the platform during distributed
-  experiments. Defaults to 'Untitled'
-  - Description: Short textual description of the platform. Defaults to 'Untitled ELCM Portal'
-  - DescriptionPage: HTML file that contains a more detailed description of the platform. The HTML written in
-  this file will be inserted in the 'Info' page of the Portal. Defaults to `platform.html`. This file is included in
-  this repository, and can be customized or used as reference.
-  - FavIcon: Small icon that is shown on browser tabs or when added to bookmarks. Must be stored in the
-  `static/branding/` folder. Defaults to 'header.png'
-  - Header: Small logo displayed on all page's header.  Must be stored in the`static/branding/` folder and will be
-  resized to 48x48 pixels. Defaults to 'header.png'
-  - Logo: Bigger logo displayed on the login and registration pages.  Must be stored in the`static/branding/` folder and
-  will be resized to 300x300 pixels. Defaults to 'logo.png'
+  - `Platform`: Platform name. Will be displayed in the Portal and will identify the platform during distributed
+    experiments. Defaults to `Untitled`
+  - `Description`: Short textual description of the platform. Defaults to `Untitled ELCM Portal`
+  - `DescriptionPage`: HTML file that contains a more detailed description of the platform. The HTML written in
+    this file will be inserted in the `Info` page of the Portal. Defaults to `platform.html`. This file is included in
+    this repository, and can be customized or used as reference.
+  - `FavIcon`: Small icon that is shown on browser tabs or when added to bookmarks. Must be stored in the
+    `static/branding/` folder. Defaults to `header.png`
+  - `Header`: Small logo displayed on all page's header. Must be stored in the `static/branding/` folder and will be
+    resized to 48x48 pixels. Defaults to `header.png`
+  - `Logo`: Bigger logo displayed on the login and registration pages. Must be stored in the `static/branding/` folder and
+    will be resized to 300x300 pixels. Defaults to `logo.png`
+- EmailApi:
+  - `User`: Email address used to authenticate with the email server.
+  - `Password`: Password for the email account.
+  - `Port`: Port used by the SMTP server.
+  - `Server`: SMTP server address.
+  - `TLS`: Boolean indicating if TLS is enabled.
+  - `SSL`: Boolean indicating if SSL is enabled.
+- MinIO:
+  - `Host`: Address of the MinIO server.
+  - `Port`: Port number used by MinIO.
+  - `AccessKey`: Access key used for authentication.
+  - `SecretKey`: Secret key used for authentication.
+  - `Secure`: Boolean indicating whether to use HTTPS.
+  - `Bucket`: Name of the bucket where execution data will be stored.
 
 #### Portal notices
 
