@@ -1,3 +1,7 @@
+**18/07/2025** [Version 3.2.3]
+
+- Updated the README.
+
 **14/07/2025** [Version 3.2.2]
 
 - Updated the installer.
